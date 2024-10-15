@@ -1,0 +1,33 @@
+/* printStyle.css */
+@media print {
+   @page {
+     size: 60mm 80mm; /* Ajusta el tamaño del ticket */
+     margin: 0; /* Sin márgenes para maximizar el uso del espacio */
+   }
+ 
+   .ticket {
+     width: 60mm; /* Ancho del ticket */
+     height: 80mm; /* Alto del ticket */
+     padding: 5mm;
+     font-size: 10px;
+     font-family: monospace;
+     margin: 0; /* Asegúrate de que no haya márgenes adicionales */
+     box-sizing: border-box; /* Incluye padding y border en el tamaño total */
+   }
+ 
+   .ticket h1 {
+     font-size: 12px;
+     margin: 0; /* Ajusta el margen si es necesario */
+     padding-bottom: 3mm; /* Ajusta el espacio debajo del título */
+   }
+ 
+   .ticket p {
+     margin: 0;
+     padding: 0;
+   }
+ 
+   .ticket hr {
+     margin: 0; /* Ajusta los márgenes del hr si es necesario */
+   }
+ }
+ 

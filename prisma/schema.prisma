@@ -1,0 +1,366 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model Usuarios {
+  idUsuario Int      @id @default(autoincrement())
+  usuario  String   @unique
+  correo String   @unique
+  clave String
+  nombre String
+  apellidos String
+  telefono String
+  direccion String
+  esEmpleado Boolean
+  idRol Int
+  fechaCreacion DateTime @default(now())
+  idUsuarioCreacion Int?
+  fechaModificacion DateTime?
+  idUsuarioModificacion Int?
+  oculto Boolean?
+  bloqueado Boolean?
+  mensajeBloqueo String?
+  intentos Int? 
+  resetPasswordToken       String?   @unique
+  resetPasswordTokenExpiry DateTime?
+  emailVerified          Boolean? @default(false)
+  emailVerificationToken String? @unique
+
+
+
+  Rol Roles? @relation(fields: [idRol], references: [idRol])
+
+  asistencias Asistencia[]
+  metas Metas[]
+  horarios   Horario[]
+}
+model Asistencia {
+  idAsistencia         Int       @id @default(autoincrement())
+  idUsuarioEmpleado Int
+  fechaHoraEntrada    DateTime
+  fechaHoraSalida     DateTime?
+  observacion     String?
+  fechaCreacion      DateTime
+
+  Empleado   Usuarios  @relation(fields: [idUsuarioEmpleado], references: [idUsuario]) 
+
+  
+  @@unique([idUsuarioEmpleado, fechaCreacion])
+}
+
+model Metas {
+  idMeta         Int       @id @default(autoincrement())
+  idEmpleado Int 
+  asunto String
+  observaciones String?
+  fechaCreacion DateTime @default(now())
+  idUsuarioCreacion Int?
+  fechaModificacion DateTime?
+  idUsuarioModificacion Int?
+  eliminado Boolean?
+  vistoEmpleado Boolean?
+  
+
+  Empleado Usuarios  @relation(fields: [idEmpleado], references: [idUsuario]) 
+}
+
+
+model StatusAuditoriaLogin {
+  IdStatusAuditoriaLogin Int    @id @default(autoincrement())
+  Status                 String
+  auditoriaLogins        AuditoriaLogin[]
+}
+
+model AuditoriaLogin {
+  IdAuditoriaLogin       Int       @id @default(autoincrement())
+  FechaLogin             DateTime  @default(now())
+  Usuario                String
+  Clave                  String?
+  IdStatusAuditoriaLogin Int
+  FechaEstadoActualizado DateTime?
+  Mensaje                String?
+
+  fk_StatusAuditoria     StatusAuditoriaLogin @relation(fields: [IdStatusAuditoriaLogin], references: [IdStatusAuditoriaLogin])
+}
+
+model Clientes {
+  idCliente         Int      @id @default(autoincrement())
+  nombreCompleto    String
+  correo             String?
+  telefono          String?
+  celular           String?
+  direccion         String?
+  eliminado         Boolean?
+  fechaCreacion     DateTime @default(now())
+  idUsuarioCreacion Int?
+  fechaModificacion DateTime?
+  idUsuarioModificacion Int?
+
+  facturas  Facturas[]
+}
+
+model CategoriaProdVenta {
+  idCategoriaProdVenta Int             @id @default(autoincrement())
+  nombre               String
+  estado               Boolean
+  productosVenta       ProductoVenta[]
+}
+
+model ProductoVenta {
+  idProductoVenta      Int      @id @default(autoincrement())
+  nombre               String
+  cantidad             Decimal  @db.Decimal(18, 3)
+  cantidadMinima       Decimal  @db.Decimal(18, 3)
+  precio               Decimal  @db.Decimal(18, 3)
+  idUsuarioCreacion    Int
+  fechaCreacion        DateTime @default(now())
+  eliminado            Boolean
+  idCategoriaProdVenta Int
+  imagen               Bytes
+  tipoImagen           String
+
+  fk_CategoriaProdVenta CategoriaProdVenta @relation(fields: [idCategoriaProdVenta], references: [idCategoriaProdVenta])
+  fk_detallesFactura     DetallesFactura[] 
+}
+
+model Horario {
+  id            Int      @id @default(autoincrement())
+  usuarioId     Int
+  dia           String   // Puede ser 'lunes', 'martes', etc.
+  inicio        String?  // Hora de inicio (opcional si es día libre)
+  fin           String?  // Hora de fin (opcional si es día libre)
+  esDiaLibre    Boolean  // Si es un día libre
+  usuario       Usuarios @relation(fields: [usuarioId], references: [idUsuario])
+
+  @@unique([usuarioId, dia]) // Asegura que cada usuario tenga solo un horario por día
+}
+
+model Pedido {
+  id                Int       @id @default(autoincrement())
+  proveedorId         Int 
+  proveedores       Proveedores   @relation(fields: [proveedorId], references: [ProveedorID])
+  medioPedido       String
+  productos         Json
+  observaciones     String?
+  estado            Estado    @default(EN_PROGRESO)
+  fechaFinalizacion DateTime?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+}
+
+
+enum Estado {
+  EN_PROGRESO
+  CANCELADO
+  FINALIZADO
+}
+
+enum EstadoFac {
+  ACTIVA
+  PAGADA
+  NULA
+}
+model Proveedores {
+  ProveedorID   Int             @id @default(autoincrement())
+  Nombre        String
+  Tipo          String   @default("Desconocido")
+  Direccion     String?
+  Telefono      String?
+  Email         String          @unique
+  SitioWeb      String?         @unique
+  Contacto      String?
+  Pedido       Pedido[]
+  Productos     Productos[]
+}
+
+model Pedidos {
+  PedidoID       Int             @id @default(autoincrement())
+  ProveedorID    Int
+  FechaEmision   DateTime
+  FechaRecepcion DateTime?
+  Estado         String
+  Observaciones  String?
+  Detalles       DetallesPedido[]
+}
+
+model DetallesPedido {
+  DetallePedidoID Int             @id @default(autoincrement())
+  PedidoID        Int
+  ProductoID      Int
+  Cantidad        Int
+  PrecioUnitario  Float
+  IVA             Float
+  Total           Float
+  Pedido          Pedidos         @relation(fields: [PedidoID], references: [PedidoID])
+  Producto        Productos       @relation(fields: [ProductoID], references: [ProductoID])
+}
+
+model Productos {
+  ProductoID      Int             @id @default(autoincrement())
+  Nombre          String
+  Descripcion     String?
+  PrecioCompra    Float
+  PrecioVenta     Float
+  Stock           Int
+  CategoriaID     Int
+  ProveedorID     Int
+  FechaIngreso    DateTime
+  FechaCaducidad  DateTime?
+  Estado          String
+  Categoria       CategoriasProducto @relation(fields: [CategoriaID], references: [CategoriaProductoID])
+  Proveedor       Proveedores        @relation(fields: [ProveedorID], references: [ProveedorID])
+  DetallesPedidos DetallesPedido[]
+}
+
+model CategoriasProducto {
+  CategoriaProductoID Int             @id @default(autoincrement())
+  NombreCategoria     String
+  Descripcion         String?
+  Productos           Productos[]
+}
+
+model InfoEmpresa {
+  idEmpresa       Int     @id @default(autoincrement())
+  nombre          String
+  nombreComercial String
+  identificacion  String
+  correo          String
+  telefono        String
+  celular         String
+  direccion       String
+  logo            Bytes?  @default(dbgenerated("null"))
+  tipoImagen      String?
+}
+
+model MedioPago {
+  idMedioPago Int @id @default(autoincrement())
+  nombre      String
+}
+
+model Facturas {
+  idFactura     Int              @id @default(autoincrement())
+  idCliente     Int
+  fechaEmision  DateTime
+  documentoJson Json
+  observaciones String
+  idMedioPago   Int
+  total         Decimal @db.Decimal(18, 5)
+  pagadoCon Decimal @db.Decimal(18, 5)
+  vuelto Decimal @db.Decimal(18, 5)
+  idInfoCaja Int
+
+  cliente   Clientes   @relation(fields: [idCliente], references: [idCliente])
+  detalles  DetallesFactura[]
+  infoCafa InfoCaja @relation(fields: [idInfoCaja], references: [idInfoCaja])
+  estadoFac EstadoFac
+
+  @@index([idCliente], name: "idx_idCliente")
+}
+
+model DetallesFactura {
+  idDetalleFactura Int @id @default(autoincrement())
+  idFactura        Int
+  cantidad         Decimal @db.Decimal(18, 5)
+  descripcion      String
+  precio           Decimal @db.Decimal(18, 5)
+  idProductoVenta  Int
+
+  fk_factura Facturas @relation(fields: [idFactura], references: [idFactura])
+  fk_productoVenta  ProductoVenta  @relation(fields: [idProductoVenta], references: [idProductoVenta])
+
+
+  @@index([idFactura], name: "idx_idFactura")
+}
+
+model InfoCaja {
+  idInfoCaja Int @id @default(autoincrement())
+  fechaApertura DateTime 
+  fechaCierre DateTime?
+  idUsuario Int
+  fechaConsultaCaja DateTime
+  montoInicioCaja Decimal @db.Decimal(18, 5)
+  montoCierreCaja Decimal? @db.Decimal(18, 5)
+
+  facturas Facturas[]
+  movimientos Movimientos[]
+}
+
+model TipoMovimiento{
+  idTipoMovimiento Int @id @default(autoincrement())
+  nombre String
+
+  tiposMovimientos Movimientos []
+}
+
+model EstadoMovimiento{
+  idEstadoMovimiento Int @id @default(autoincrement())
+  nombre String
+  estadosMovimientos Movimientos []
+}
+
+
+model Movimientos{
+  idMovimiento Int @id @default(autoincrement())
+  idTipoMovimiento Int
+  idEstadoMovimiento Int
+  idUsuarioCreacion Int?
+  fechaCreacion DateTime @default(now())
+  idUsuarioModificacion Int?
+  fechaModificacion DateTime @default(now())
+  motivo String
+  idInfoCaja Int
+  monto Decimal @db.Decimal(18, 5)
+
+  TipoMovimiento TipoMovimiento @relation(fields: [idTipoMovimiento], references: [idTipoMovimiento])
+  EstadoMovimiento EstadoMovimiento @relation(fields: [idEstadoMovimiento], references: [idEstadoMovimiento])
+  MovimientosInfoCaja InfoCaja @relation(fields: [idInfoCaja], references: [idInfoCaja])
+}
+
+model Roles{
+  idRol Int @id @default(autoincrement())
+  nombre String @unique
+  descripcion String?
+  eliminado Boolean
+  oculto Boolean
+  idUsuarioCreacion Int?
+  fechaCreacion DateTime @default(now())
+  idUsuarioModificacion Int?
+  fechaModificacion DateTime?
+
+  Permisos PermisosPorRoles []
+  Usuarios Usuarios []
+}
+
+model Permisos{
+  idPermiso Int @id @default(autoincrement())
+  idPermisoPadre Int?
+  nombre String?
+  icono String?
+  url String?
+  jerarquia Int?
+  ocultar Boolean
+  eliminado Boolean
+  idUsuarioCreacion Int?
+  fechaCreacion DateTime @default(now())
+  idUsuarioModificacion Int?
+  fechaModificacion DateTime?
+  opcEmpleado Boolean
+
+  Roles PermisosPorRoles[]
+}
+
+model PermisosPorRoles{
+  idPermiso Int
+  idRol Int
+
+  rol Roles   @relation(fields: [idRol], references: [idRol])
+  permiso Permisos @relation(fields: [idPermiso], references: [idPermiso])
+
+  @@id([idRol, idPermiso]) 
+
+}
