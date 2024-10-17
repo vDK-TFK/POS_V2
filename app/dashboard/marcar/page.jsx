@@ -14,6 +14,7 @@ import { getSession } from "next-auth/react";
 import { ClipLoader } from "react-spinners";
 import MarcarEntrada from "@/app/components/registro_horas/horaEntrada";
 import AgregarNota from "@/app/components/registro_horas/observacion";
+import MarcarSalida from "@/app/components/registro_horas/horaSalida";
 
 const itemsBreadCrumb = ["Dashboard", "Marcar Entrada / Salida"];
 
@@ -38,16 +39,19 @@ const MarcarPage = () => {
     const [asistencia, onSet_Asistencia] = useState(null);
     const [onLoading, onSet_onLoading] = useState(true);
     const fetchCalled = useRef(false);
-    const [fechas, setFechas] = useState([]);
-    const [marcarEntrada,onModal_Entrada] = useState(false);
-    const [marcarSalida,onModal_Salida] = useState(false);
-    const [agregarNota,onModal_Nota] = useState(false);
+    const [marcarEntrada, onModal_Entrada] = useState(false);
+    const [marcarSalida, onModal_Salida] = useState(false);
+    const [agregarNota, onModal_Nota] = useState(false);
+    const [idAsistencia, onSet_IdAsistencia] = useState(0);
+    const [arrayAsistencia, onSet_ArrayAsistencia] = useState([]);
 
-
-    const [idUsuarioEmpleadoMarca,onSet_IdUsuarioEmpleadoMarca] = useState(0);
+   
+    const [idUsuarioEmpleadoMarca, onSet_IdUsuarioEmpleadoMarca] = useState(0);
 
     // Función para obtener la asistencia
     const onGet_Asistencia = useCallback(async () => {
+        var arrAsistencia = [];
+
         const session = await getSession();
         const idUsuarioEmpleado = session.user.id;
         onSet_IdUsuarioEmpleadoMarca(idUsuarioEmpleado);
@@ -59,6 +63,9 @@ const MarcarPage = () => {
             const result = await response.json();
             if (result.status === "success") {
                 onSet_Asistencia(result.data);
+                arrAsistencia.push(result.data);
+                onSet_ArrayAsistencia(arrAsistencia);
+                onSet_IdAsistencia(result.data.idAsistencia);
                 toast.success(result.message);
             } else if (result.code === 400) {
                 toast.info(result.message);
@@ -77,28 +84,34 @@ const MarcarPage = () => {
         }
     }, []);
 
+    //Calendario
+    const onGet_Calendario = useCallback(async () => {
+        const session = await getSession();
+        const idUsuarioEmpleado = session.user.id;
+        if (!idUsuarioEmpleado) return;
+        try {
+            const response = await fetch(`/api/calendario/${idUsuarioEmpleado}`);
+            if (!response.ok) {
+                toast.info('Aún debe marcar la asistencia de hoy');
+                return;
+            }
+            const data = await response.json();
+            console.log(data)
+            
+        } catch (err) {
+            toast.error('Error al comunicar con el servidor');
+        }
+    }, []);
+
     useEffect(() => {
         if (!fetchCalled.current) {
             onGet_Asistencia();
-            fetchCalled.current = true;  // Evitar múltiples llamadas
+            //onGet_Calendario()
+            fetchCalled.current = true; 
         }
     }, [onGet_Asistencia]);
 
-    //Calendario
-    // const onGet_Calendario = useCallback(async () => {
-    //     if (!idUsuarioEmpleado) return;
-    //     try {
-    //         const response = await fetch(`/api/calendario/${idUsuarioEmpleado}`);
-    //         if (!response.ok) {
-    //             toast.info('Aún debe marcar la asistencia de hoy');
-    //             return;
-    //         }
-    //         const data = await response.json();
-    //         setFechas(data);
-    //     } catch (err) {
-    //         toast.error('Error al comunicar con el servidor');
-    //     }
-    // }, []);
+    
 
 
 
@@ -129,22 +142,28 @@ const MarcarPage = () => {
                         (
                             <>
                                 <div className="pt-4">
-                                    <div className="mt-2 grid grid-cols-1 md:grid-cols-3 mx-auto">
-                                        {!asistencia && (
-                                            <div className="col-span-1 flex justify-center items-center">
-                                                <HtmlButton onClick={() => { onModal_Entrada(true) }} legend={"Marcar Hora de Entrada"} icon={Clock} color={"green"} />
-                                            </div>
-                                        )}
-                                        {asistencia && (
-                                            <>
-                                                <div className="col-span-1 flex justify-center items-center">
-                                                    <HtmlButton onClick={() => { onModal_Nota(true) }} legend={"Agregar Nota"} icon={Notebook} color={"indigo"} />
+                                    <div className="mt-2 grid grid-cols-1 md:grid-cols-1 mx-auto">
+
+                                        
+
+                                                <div className="col-span-1 flex">
+                                                    {!asistencia && (
+                                                        
+                                                            <HtmlButton onClick={() => { onModal_Entrada(true) }} legend={"Marcar Hora de Entrada"} icon={Clock} color={"green"} />
+                                                        
+                                                    )}
+                                                    {asistencia && (
+                                                        <>
+
+                                                            <HtmlButton onClick={() => { onModal_Nota(true) }} legend={"Agregar Nota a esta Asistencia"} icon={Notebook} color={"indigo"} />
+
+                                                            <HtmlButton onClick={() => { onModal_Salida(true) }} legend={"Marcar Hora de Salida"} icon={LogOut} color={"red"} />
+
+                                                        </>
+                                                    )}
+
                                                 </div>
-                                                <div className="col-span-1 flex justify-center items-center">
-                                                    <HtmlButton onClick={() => { onModal_Salida(true) }} legend={"Marcar Hora de Salida"} icon={LogOut} color={"red"} />
-                                                </div>
-                                            </>
-                                        )}
+                                          
 
                                     </div>
                                 </div>
@@ -152,7 +171,7 @@ const MarcarPage = () => {
                                 <div className="pt-4">
                                     <div className="mt-2 grid grid-cols-1 md:grid-cols-1 mx-auto">
                                         <div className="col-span-1">
-                                            <MyCalendar fechas={fechas} />
+                                            <MyCalendar fechas={arrayAsistencia} />
                                         </div>
                                     </div>
                                 </div>
@@ -166,8 +185,9 @@ const MarcarPage = () => {
 
                 </div>
             </div>
-            <MarcarEntrada open={marcarEntrada} onClose={() => {onModal_Entrada(false)}} horaActual={horaLocal} idUsuarioEmpleado={idUsuarioEmpleadoMarca} onGet_Asistencia={onGet_Asistencia} />
-            <AgregarNota open={agregarNota} onClose={() => {onModal_Nota(false)}} idAsistencia={1} onGet_Asistencia={onGet_Asistencia}  />
+            <MarcarEntrada open={marcarEntrada} onClose={() => { onModal_Entrada(false) }} horaActual={horaLocal} idUsuarioEmpleado={idUsuarioEmpleadoMarca} onGet_Asistencia={onGet_Asistencia} />
+            <AgregarNota open={agregarNota} onClose={() => { onModal_Nota(false) }} idAsistencia={idAsistencia} onGet_Asistencia={onGet_Asistencia} />
+            <MarcarSalida open={marcarSalida} onClose={() => { onModal_Salida(false) }} idAsistencia={idAsistencia} horaActual={horaLocal} idUsuarioEmpleado={idUsuarioEmpleadoMarca} onGet_Asistencia={onGet_Asistencia}  />
         </>
     );
 };

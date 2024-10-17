@@ -9,6 +9,9 @@ export async function GET() {
     const listaAsistencia = await prisma.asistencia.findMany({
       include:{
         Empleado:true
+      },
+      where:{
+        fechaHoraSalida:null
       }
     });
 
@@ -49,7 +52,7 @@ export async function POST(request) {
     const existeAsistencia = await prisma.asistencia.findFirst({
       where: {
         idUsuarioEmpleado: idUsuarioEmpleado,
-        fechaHoraEntrada: fechaHoraEntrada
+        fechaCreacion: fechaCreacion
       },
     });
 
@@ -57,7 +60,7 @@ export async function POST(request) {
       return NextResponse.json({
         code: 400,
         status: "failed",
-        message: "Ya existe una asistencia registrada con la fecha indicada"
+        message: "Ya existe una asistencia registrada para el mismo usuario y en la misma fecha"
       });
     }
 
@@ -92,6 +95,66 @@ export async function POST(request) {
       code: 500,
       status: "error",
       message: "Error al ingresar la asistencia: " + error.message
+    });
+  }
+}
+
+//Marcar ASISTENCIA
+export async function PUT(request) {
+
+  try {
+    const data = await request.json();
+    const { idUsuarioEmpleado, idAsistencia, fechaHoraSalida } = data;
+
+    //Validamos que exista o no una asistencia marcada a esa fecha
+    const existeAsistencia = await prisma.asistencia.findFirst({
+      where: {
+        idUsuarioEmpleado: idUsuarioEmpleado,
+        idAsistencia:idAsistencia
+      },
+    });
+
+    if (!existeAsistencia) {
+      return NextResponse.json({
+        code: 400,
+        status: "failed",
+        message: "No existe una asistencia para marcar salida"
+      });
+    }
+
+    const salidaAsistencia = await prisma.asistencia.update({
+      where:{
+        idAsistencia:idAsistencia,
+        idUsuarioEmpleado:idUsuarioEmpleado
+      },
+      data: {
+        fechaHoraSalida:fechaHoraSalida
+      }
+    })
+
+
+    if (!salidaAsistencia) {
+      return NextResponse.json({
+        code: 400,
+        status: "failed",
+        message: "Error al marcar la salida para esta asistencia"
+      });
+    }
+
+    return NextResponse.json({
+      code: 200,
+      status: "success",
+      data: true,
+      message: "Salida registrada correctamente"
+    });
+
+  }
+  catch (error) {
+    console.error('Error al ingresar la salida:', error);
+    return NextResponse.json({
+      code: 500,
+      status: "error",
+      message: "Error al ingresar la salida: " + error.message
     });
   }
 }

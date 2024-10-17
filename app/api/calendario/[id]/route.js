@@ -1,20 +1,25 @@
 import { NextResponse } from 'next/server';
 import db from '@/app/lib/db';
+import { PrismaClient } from '@prisma/client';
+
+const prisma = new PrismaClient();
 
 export async function GET(request, { params }) {
 
     try {
-        const empleadoId = Number(params.id);
+        const idUsuarioEmpleado = Number(params.id);
 
-        const asistencias = await db.asistencia.findMany({
+        const asistencias = await prisma.asistencia.findMany({
             where: {
-                empleadoId: empleadoId,
+                idUsuarioEmpleado:idUsuarioEmpleado
             },
         });
         
         if (!asistencias) {
             return NextResponse.json({ message: 'No se han registrado asistencias.' }, { status: 404 });
-        }
+        }        
+        console.log("Asistencias Calendario: " + JSON.stringify(asistencias))
+
         
         return NextResponse.json(asistencias);
 

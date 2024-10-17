@@ -28,9 +28,13 @@ export async function GET(request, { params }) {
           gte: new Date(fechaLocal), // Fecha de hoy 00:00:00
           lt: new Date(fechaLocalTom), // Fecha de mañana 00:00:00
         },
+        fechaHoraSalida:null
       }
     })
+ 
+    console.log("Asistencias: " + JSON.stringify(asistenciaHoy))
 
+        
     if(!asistenciaHoy){
       return NextResponse.json({
         code: 400,
@@ -58,8 +62,9 @@ export async function GET(request, { params }) {
   }
 }
 
-export async function PUT(request, { params }) {
+export async function POST(request, { params }) {
   try {
+    const idAsistencia = Number(params.id); 
     const model = await request.json();
 
     const observacionAsistencia = await prisma.asistencia.update({
@@ -67,7 +72,7 @@ export async function PUT(request, { params }) {
         observacion:model.observacion
       },
       where:{
-        idAsistencia:model.idAsistencia
+        idAsistencia:idAsistencia
       }
     });
 

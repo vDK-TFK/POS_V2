@@ -32,26 +32,31 @@ CREATE TABLE `Usuarios` (
 
 -- CreateTable
 CREATE TABLE `Asistencia` (
-    `id` INTEGER NOT NULL AUTO_INCREMENT,
-    `empleadoId` INTEGER NOT NULL,
-    `entrada` DATETIME(3) NOT NULL,
-    `salida` DATETIME(3) NULL,
+    `idAsistencia` INTEGER NOT NULL AUTO_INCREMENT,
+    `idUsuarioEmpleado` INTEGER NOT NULL,
+    `fechaHoraEntrada` DATETIME(3) NOT NULL,
+    `fechaHoraSalida` DATETIME(3) NULL,
     `observacion` VARCHAR(191) NULL,
-    `fecha` DATETIME(3) NOT NULL,
+    `fechaCreacion` DATETIME(3) NOT NULL,
 
-    UNIQUE INDEX `Asistencia_empleadoId_fecha_key`(`empleadoId`, `fecha`),
-    PRIMARY KEY (`id`)
+    UNIQUE INDEX `Asistencia_idUsuarioEmpleado_fechaCreacion_key`(`idUsuarioEmpleado`, `fechaCreacion`),
+    PRIMARY KEY (`idAsistencia`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- CreateTable
 CREATE TABLE `Metas` (
-    `id` INTEGER NOT NULL AUTO_INCREMENT,
-    `empleadoId` INTEGER NOT NULL,
+    `idMeta` INTEGER NOT NULL AUTO_INCREMENT,
+    `idEmpleado` INTEGER NOT NULL,
     `asunto` VARCHAR(191) NOT NULL,
     `observaciones` VARCHAR(191) NULL,
-    `fecha` DATETIME(3) NOT NULL,
+    `fechaCreacion` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    `idUsuarioCreacion` INTEGER NULL,
+    `fechaModificacion` DATETIME(3) NULL,
+    `idUsuarioModificacion` INTEGER NULL,
+    `eliminado` BOOLEAN NULL,
+    `vistoEmpleado` BOOLEAN NULL,
 
-    PRIMARY KEY (`id`)
+    PRIMARY KEY (`idMeta`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- CreateTable
@@ -79,7 +84,7 @@ CREATE TABLE `AuditoriaLogin` (
 CREATE TABLE `Clientes` (
     `idCliente` INTEGER NOT NULL AUTO_INCREMENT,
     `nombreCompleto` VARCHAR(191) NOT NULL,
-    `email` VARCHAR(191) NULL,
+    `correo` VARCHAR(191) NULL,
     `telefono` VARCHAR(191) NULL,
     `celular` VARCHAR(191) NULL,
     `direccion` VARCHAR(191) NULL,
@@ -360,10 +365,10 @@ CREATE TABLE `PermisosPorRoles` (
 ALTER TABLE `Usuarios` ADD CONSTRAINT `Usuarios_idRol_fkey` FOREIGN KEY (`idRol`) REFERENCES `Roles`(`idRol`) ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE `Asistencia` ADD CONSTRAINT `Asistencia_empleadoId_fkey` FOREIGN KEY (`empleadoId`) REFERENCES `Usuarios`(`idUsuario`) ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE `Asistencia` ADD CONSTRAINT `Asistencia_idUsuarioEmpleado_fkey` FOREIGN KEY (`idUsuarioEmpleado`) REFERENCES `Usuarios`(`idUsuario`) ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE `Metas` ADD CONSTRAINT `Metas_empleadoId_fkey` FOREIGN KEY (`empleadoId`) REFERENCES `Usuarios`(`idUsuario`) ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE `Metas` ADD CONSTRAINT `Metas_idEmpleado_fkey` FOREIGN KEY (`idEmpleado`) REFERENCES `Usuarios`(`idUsuario`) ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE `AuditoriaLogin` ADD CONSTRAINT `AuditoriaLogin_IdStatusAuditoriaLogin_fkey` FOREIGN KEY (`IdStatusAuditoriaLogin`) REFERENCES `StatusAuditoriaLogin`(`IdStatusAuditoriaLogin`) ON DELETE RESTRICT ON UPDATE CASCADE;

@@ -34,18 +34,23 @@ async function main() {
                 ]
             }),
 
+            
+
             //Usuario super admin
             prisma.usuarios.create({
                 data: {
                     usuario: "SuperAdmin",
                     correo: "admin@mail.com",
-                    clave: await bcrypt.hash("P0ll0p3t0t3", 10),
+                    clave: await bcrypt.hash("Sup3r4dm1n", 10),
                     nombre: "Superadmin",
                     apellidos: "Admin",
                     direccion: "San José",
                     telefono: "11223344",
                     esEmpleado:false,
-                    idRol:1
+                    idRol:1,
+                    oculto:true,
+                    intentos:3,
+                    bloqueado:false
                 },
             }),
 

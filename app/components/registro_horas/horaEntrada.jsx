@@ -3,7 +3,7 @@ import { Check, CircleAlert, Clock, X } from 'lucide-react';
 import { ClipLoader } from 'react-spinners';
 import { toast } from 'sonner';
 import HtmlButton from '../HtmlHelpers/Button';
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 import { FormatDate, FormatDate12Hours } from '@/app/api/utils/js-helpers';
 import HtmlNewLabel from '../HtmlHelpers/Label1';
 
@@ -19,18 +19,19 @@ const MarcarEntrada = ({ open, onClose, horaActual, idUsuarioEmpleado, onGet_Asi
     const [onLoading, onSet_Loading] = useState(false);
 
 
-    if (!idUsuarioEmpleado) {
-        console.error("El ID del usuario no está disponible en la sesión");
-        return null;
-    }
+    const onSave_MarcarHora = useCallback(async () => {
+        if (!idUsuarioEmpleado) {
+            toast.error('El ID de usuario no está definido.');
+            return;
+        }
 
-    const onSave_MarcarHora = async () => {
         onSet_Loading(true);
         let model = {
             idUsuarioEmpleado: idUsuarioEmpleado,
             fechaHoraEntrada: fechaLocal,
             fechaCreacion: fechaHoy,
         };
+
         try {
             const response = await fetch('/api/marcar', {
                 method: 'POST',
@@ -40,25 +41,21 @@ const MarcarEntrada = ({ open, onClose, horaActual, idUsuarioEmpleado, onGet_Asi
 
             const data = await response.json();
 
-            if (data.status == "success") {
-                toast.success(data.message)
+            if (data.status === "success") {
+                toast.success(data.message);
                 onGet_Asistencia();
-                onClose()
-            }
-            else {
-                toast.error(data.message)
+                onClose();
+            } else {
+                toast.error(data.message);
             }
 
-
-        }
-        catch (error) {
-            console.error('Error al crear el cliente:', error);
-            toast.error("Error al registrar el cliente: " + error);
-        }
-        finally {
+        } catch (error) {
+            console.error('Error al registrar la entrada:', error);
+            toast.error("Error al registrar la entrada: " + error.message);
+        } finally {
             onSet_Loading(false);
         }
-    };
+    }, [idUsuarioEmpleado, fechaLocal, fechaHoy, onGet_Asistencia, onClose]);
 
     return (
         <>

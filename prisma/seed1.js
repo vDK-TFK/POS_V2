@@ -65,65 +65,74 @@ async function main() {
                     celular: '87654321',
                     direccion: '123 Calle Ejemplo',
                     logo: null,
-                    tipoImagen: 'image/jpeg'
+                    tipoImagen: null
                 }
             }),
 
-             //Roles
-             prisma.roles.createMany({
+            //Roles
+            prisma.roles.createMany({
                 data: [
-                    { 
+                    {
                         nombre: 'Desarrollador',
-                        descripcion:'Rol para el dev',
-                        eliminado:false,
-                        oculto:true,
-                        idUsuarioCreacion:1
-                    }
+                        descripcion: 'Rol para el dev',
+                        eliminado: false,
+                        oculto: true,
+                        idUsuarioCreacion: 1
+                    },
+                    {
+                        nombre: 'Empleado',
+                        descripcion: 'Rol para el empleado',
+                        eliminado: false,
+                        oculto: false,
+                        idUsuarioCreacion: 1
+                    },
+
                 ]
             }),
+           
 
             //Permisos
             prisma.permisos.createMany({
-                data:[
-                    { idPermisoPadre: 0, nombre: 'Dashboard', icono: 'Gauge', url: '/dashboard', jerarquia:1,ocultar:false,eliminado:false,idUsuarioCreacion:1,fechaCreacion:new Date(),opcEmpleado:false },
-                    { idPermisoPadre: 0, nombre: 'Info. Caja', icono: 'Computer', url: '/dashboard/caja', jerarquia:1,ocultar:false,eliminado:false,idUsuarioCreacion:1,fechaCreacion:new Date(),opcEmpleado:false },
-                    { idPermisoPadre: 0, nombre: 'POS', icono: 'Utensils', url: '/dashboard/menu', jerarquia:1,ocultar:false,eliminado:false,idUsuarioCreacion:1,fechaCreacion:new Date(),opcEmpleado:false },
-                    { idPermisoPadre: 0, nombre: 'Facturas', icono: 'ScrollText', url: '/dashboard/factura', jerarquia:1,ocultar:false,eliminado:false,idUsuarioCreacion:1,fechaCreacion:new Date(),opcEmpleado:false},
-                    { idPermisoPadre: 0, nombre: 'Inventario', icono: 'Warehouse', url: '/dashboard/inventario', jerarquia:1,ocultar:false,eliminado:false,idUsuarioCreacion:1,fechaCreacion:new Date(),opcEmpleado:false },
-                    { idPermisoPadre: 0, nombre: 'Reportes', icono: 'FileLineChart', url: '/dashboard/reporteria', jerarquia:1,ocultar:false,eliminado:false,idUsuarioCreacion:1,fechaCreacion:new Date(),opcEmpleado:false },
-                    { idPermisoPadre: 0, nombre: 'Empleados', icono: 'BriefcaseBusiness', url: '/dashboard/empleado', jerarquia:1,ocultar:false,eliminado:false,idUsuarioCreacion:1,fechaCreacion:new Date(),opcEmpleado:false },
-                    { idPermisoPadre: 0, nombre: 'Adm. Clientes', icono: 'BookUser', url: '/dashboard/clientes', jerarquia:1,ocultar:false,eliminado:false,idUsuarioCreacion:1,fechaCreacion:new Date(),opcEmpleado:false},
-                    { idPermisoPadre: 0, nombre: 'Seguridad', icono: 'LockKeyHole', url: '/dashboard/seguridad', jerarquia:1,ocultar:false,eliminado:false,idUsuarioCreacion:1,fechaCreacion:new Date(),opcEmpleado:false },
-                    { idPermisoPadre: 0, nombre: 'Pedidos', icono: 'Truck', url: '/dashboard/pedido', jerarquia:1,ocultar:false,eliminado:false,idUsuarioCreacion:1,fechaCreacion:new Date(),opcEmpleado:false },
-                    { idPermisoPadre: 0, nombre: 'Horarios', icono: 'AlarmClock', url: '/dashboard/horas', jerarquia:1,ocultar:false,eliminado:false,idUsuarioCreacion:1,fechaCreacion:new Date(),opcEmpleado:false },
-                    { idPermisoPadre: 0, nombre: 'Metas', icono: 'BriefcaseBusiness', url: '/dashboard/metas', jerarquia:1,ocultar:false,eliminado:false,idUsuarioCreacion:1,fechaCreacion:new Date(),opcEmpleado:true },
-                    { idPermisoPadre: 0, nombre: 'Entrada / Salida', icono: 'Flag', url: '/dashboard/marcar', jerarquia:1,ocultar:false,eliminado:false,idUsuarioCreacion:1,fechaCreacion:new Date(),opcEmpleado:true},
-                    { idPermisoPadre: 5, nombre: 'Proveedores', icono: null, url: '/dashboard/proveedores', jerarquia:2,ocultar:false,eliminado:false,idUsuarioCreacion:1,fechaCreacion:new Date(),opcEmpleado:false },
-                    { idPermisoPadre: 5, nombre: 'Categorías', icono: null, url: '/dashboard/categorias', jerarquia:2,ocultar:false,eliminado:false,idUsuarioCreacion:1,fechaCreacion:new Date(),opcEmpleado:false },
-                    { idPermisoPadre: 7, nombre: 'Administrar Metas', icono: null, url: '/dashboard/metas', jerarquia:2,ocultar:false,eliminado:false,idUsuarioCreacion:1,fechaCreacion:new Date(),opcEmpleado:false },
-                    { idPermisoPadre: 9, nombre: 'Usuarios', icono: null, url: '/dashboard/usuarios', jerarquia:2,ocultar:false,eliminado:false,idUsuarioCreacion:1,fechaCreacion:new Date(),opcEmpleado:false },
-                    { idPermisoPadre: 9, nombre: 'Roles', icono: null, url: '/dashboard/roles', jerarquia:2,ocultar:false,eliminado:false,idUsuarioCreacion:1,fechaCreacion:new Date(),opcEmpleado:false },
-                    { idPermisoPadre: 9, nombre: 'Info. Empresa', icono: null, url: '/dashboard/empresa', jerarquia:2,ocultar:false,eliminado:false,idUsuarioCreacion:1,fechaCreacion:new Date(),opcEmpleado:false },
-                    { idPermisoPadre: 9, nombre: 'Auditoría Inicio Sesión', icono: null, url: '/dashboard/auditoria', jerarquia:2,ocultar:false,eliminado:false,idUsuarioCreacion:1,fechaCreacion:new Date(),opcEmpleado:false },
-  
+                data: [
+                    { idPermisoPadre: 0, nombre: 'Dashboard', icono: 'Gauge', url: '/dashboard', jerarquia: 1, ocultar: false, eliminado: false, idUsuarioCreacion: 1, fechaCreacion: new Date(), opcEmpleado: false },
+                    { idPermisoPadre: 0, nombre: 'Info. Caja', icono: 'Computer', url: '/dashboard/caja', jerarquia: 1, ocultar: false, eliminado: false, idUsuarioCreacion: 1, fechaCreacion: new Date(), opcEmpleado: false },
+                    { idPermisoPadre: 0, nombre: 'POS', icono: 'Utensils', url: '/dashboard/menu', jerarquia: 1, ocultar: false, eliminado: false, idUsuarioCreacion: 1, fechaCreacion: new Date(), opcEmpleado: false },
+                    { idPermisoPadre: 0, nombre: 'Facturas', icono: 'ScrollText', url: '/dashboard/factura', jerarquia: 1, ocultar: false, eliminado: false, idUsuarioCreacion: 1, fechaCreacion: new Date(), opcEmpleado: false },
+                    { idPermisoPadre: 0, nombre: 'Inventario', icono: 'Warehouse', url: '/dashboard/inventario', jerarquia: 1, ocultar: false, eliminado: false, idUsuarioCreacion: 1, fechaCreacion: new Date(), opcEmpleado: false },
+                    { idPermisoPadre: 0, nombre: 'Reportes', icono: 'FileLineChart', url: '/dashboard/reporteria', jerarquia: 1, ocultar: false, eliminado: false, idUsuarioCreacion: 1, fechaCreacion: new Date(), opcEmpleado: false },
+                    { idPermisoPadre: 0, nombre: 'Empleados', icono: 'BriefcaseBusiness', url: '/dashboard/empleado', jerarquia: 1, ocultar: false, eliminado: false, idUsuarioCreacion: 1, fechaCreacion: new Date(), opcEmpleado: false },
+                    { idPermisoPadre: 0, nombre: 'Adm. Clientes', icono: 'BookUser', url: '/dashboard/clientes', jerarquia: 1, ocultar: false, eliminado: false, idUsuarioCreacion: 1, fechaCreacion: new Date(), opcEmpleado: false },
+                    { idPermisoPadre: 0, nombre: 'Seguridad', icono: 'LockKeyHole', url: '/dashboard/seguridad', jerarquia: 1, ocultar: false, eliminado: false, idUsuarioCreacion: 1, fechaCreacion: new Date(), opcEmpleado: false },
+                    { idPermisoPadre: 0, nombre: 'Pedidos', icono: 'Truck', url: '/dashboard/pedido', jerarquia: 1, ocultar: false, eliminado: false, idUsuarioCreacion: 1, fechaCreacion: new Date(), opcEmpleado: false },
+                    { idPermisoPadre: 0, nombre: 'Horarios', icono: 'AlarmClock', url: '/dashboard/horas', jerarquia: 1, ocultar: false, eliminado: false, idUsuarioCreacion: 1, fechaCreacion: new Date(), opcEmpleado: false },
+                    { idPermisoPadre: 0, nombre: 'Metas', icono: 'BriefcaseBusiness', url: '/dashboard/metas', jerarquia: 1, ocultar: false, eliminado: false, idUsuarioCreacion: 1, fechaCreacion: new Date(), opcEmpleado: true },
+                    { idPermisoPadre: 0, nombre: 'Entrada / Salida', icono: 'Flag', url: '/dashboard/marcar', jerarquia: 1, ocultar: false, eliminado: false, idUsuarioCreacion: 1, fechaCreacion: new Date(), opcEmpleado: true },
+                    { idPermisoPadre: 5, nombre: 'Proveedores', icono: null, url: '/dashboard/proveedores', jerarquia: 2, ocultar: false, eliminado: false, idUsuarioCreacion: 1, fechaCreacion: new Date(), opcEmpleado: false },
+                    { idPermisoPadre: 5, nombre: 'Categorías', icono: null, url: '/dashboard/categorias', jerarquia: 2, ocultar: false, eliminado: false, idUsuarioCreacion: 1, fechaCreacion: new Date(), opcEmpleado: false },
+                    { idPermisoPadre: 7, nombre: 'Administrar Metas', icono: null, url: '/dashboard/metas', jerarquia: 2, ocultar: false, eliminado: false, idUsuarioCreacion: 1, fechaCreacion: new Date(), opcEmpleado: false },
+                    { idPermisoPadre: 9, nombre: 'Usuarios', icono: null, url: '/dashboard/usuarios', jerarquia: 2, ocultar: false, eliminado: false, idUsuarioCreacion: 1, fechaCreacion: new Date(), opcEmpleado: false },
+                    { idPermisoPadre: 9, nombre: 'Roles', icono: null, url: '/dashboard/roles', jerarquia: 2, ocultar: false, eliminado: false, idUsuarioCreacion: 1, fechaCreacion: new Date(), opcEmpleado: false },
+                    { idPermisoPadre: 9, nombre: 'Info. Empresa', icono: null, url: '/dashboard/empresa', jerarquia: 2, ocultar: false, eliminado: false, idUsuarioCreacion: 1, fechaCreacion: new Date(), opcEmpleado: false },
+                    { idPermisoPadre: 9, nombre: 'Auditoría Inicio Sesión', icono: null, url: '/dashboard/auditoria', jerarquia: 2, ocultar: false, eliminado: false, idUsuarioCreacion: 1, fechaCreacion: new Date(), opcEmpleado: false },
+
                 ]
             }),
 
-           
 
-            
-            
+
+
+
 
         ]);
 
         console.log('Primer SEED ejecutado, continúa con el seed2.js');
 
 
-    } 
+    }
     catch (e) {
         console.error(e);
         process.exit(1);
-    } 
+    }
     finally {
         await prisma.$disconnect();
     }

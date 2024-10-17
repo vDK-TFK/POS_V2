@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useEffect, useState, useCallback } from 'react'; // Importa useCallback
+import React, { useEffect, useState, useCallback, useRef } from 'react'; // Importa useCallback
 import { useSession } from 'next-auth/react';
 import { formatDistanceToNow } from 'date-fns';
 import { es } from 'date-fns/locale';
@@ -19,6 +19,8 @@ const EvaluacionesDesempeno = () => {
     const [onLoading, setLoading] = useState(true);
     const [metaId, setMetaId] = useState(true);
     const [error, setError] = useState(null);
+    const fetchCalled = useRef(false);
+
 
     const onGet_Evaluaciones = useCallback(async () => {
         if (!idUsuarioEmpleado) return;
@@ -50,7 +52,10 @@ const EvaluacionesDesempeno = () => {
     }, [idUsuarioEmpleado]);
 
     useEffect(() => {
-        onGet_Evaluaciones();
+        if (!fetchCalled.current) {
+            fetchCalled.current = true;
+            onGet_Evaluaciones();
+        }
     }, [onGet_Evaluaciones]);
 
     const handleMarcar = async (metaId) => {

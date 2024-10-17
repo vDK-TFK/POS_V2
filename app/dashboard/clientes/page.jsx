@@ -96,17 +96,16 @@ export default function Clientes() {
     const generateExcelReport = (data) => {
         const formattedData = data.map(cliente => {
             return {
-                "ID Cliente": cliente.idCliente,
+                "No. Cliente": cliente.idCliente,
                 "Nombre": cliente.nombreCompleto,
                 "Estado": cliente.eliminado ? 'Inactivo' : 'Activo',
                 "Teléfonos": cliente.celular ? `${cliente.telefono} / ${cliente.celular}` : cliente.telefono,
-                "Creado El": FormatDate(cliente.fechaCreacion),
+                "Fecha de Creacion": FormatDate(cliente.fechaCreacion),
             };
         });
     
         const worksheet = XLSX.utils.json_to_sheet(formattedData);
     
-        // Ejemplo de estilos personalizados
         const headerStyle = {
             font: { bold: true, color: { rgb: "FFFFFF" } }, // Texto en negrita y blanco
             fill: { fgColor: { rgb: "4F81BD" } }, // Fondo azul
@@ -177,7 +176,10 @@ export default function Clientes() {
                             <>
                                 <div className="grid grid-cols-1 md:grid-cols-12 gap-4 mx-auto">
                                     <HtmlButton colSize={2}  color={"blue"} icon={UserPlus} legend="Nuevo Cliente" onClick={() => { onModal_AgregarCliente(true) }} />
-                                    <HtmlButton colSize={3} color={"green"} legend={"Exportar Clientes"} icon={FileSpreadsheetIcon} onClick={handleExport} />     
+                                    
+                                    {currentClientes.length > 0 &&
+                                        <HtmlButton colSize={3} color={"green"} legend={"Exportar Clientes"} icon={FileSpreadsheetIcon} onClick={handleExport} />     
+                                    }
                                 </div>
                             </>
                         )
