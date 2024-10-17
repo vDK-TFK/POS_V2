@@ -1,15 +1,9 @@
 {
-  "version" : 2,
-  "builds":[
+    "version": 2,
+    "routes": [
       {
-          "src": "page.jsx",
-          "use":"@vercel/node"
+        "src": "/(.*)",
+        "dest": "/"
       }
-  ],
-  "routes":[
-      {
-          "src":"/(.*)",
-          "dest":"/"
-      }
-  ]
-}
+    ]
+  }
