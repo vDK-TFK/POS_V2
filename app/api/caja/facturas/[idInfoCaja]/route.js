@@ -53,7 +53,6 @@ export async function GET(request, { params }) {
             return NextResponse.json({
                 code: 204,
                 status: "failed",
-                data: [],
                 message: "No se encontró la información de la caja"
             });
         }

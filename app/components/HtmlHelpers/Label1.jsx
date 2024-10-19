@@ -75,13 +75,13 @@ const colorClasses = {
     },
 };
 
-const HtmlNewLabel = ({ color, icon: Icon, legend }) => {
+const HtmlNewLabel = ({ color, icon: Icon, legend ,textSize="sm"}) => {
     const colorClass = colorClasses[color] || colorClasses.blue; // Valor por defecto: azul
 
     return (
         <span
             className={classNames(
-                "badge text-sm font-medium inline-flex items-center px-2.5 py-0.5 rounded me-2 border",
+                `badge text-${textSize} font-medium inline-flex items-center px-2.5 py-0.5 rounded me-2 border`,
                 colorClass.base,
                 colorClass.hover,
                 colorClass.dark

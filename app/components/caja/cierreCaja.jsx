@@ -2,20 +2,44 @@ import { LockIcon, PlusIcon, X } from "lucide-react";
 import { Toaster, toast } from 'sonner';
 import HtmlButton from "../HtmlHelpers/Button";
 import HtmlFormInput from "../HtmlHelpers/FormInput";
+import { useSession } from "next-auth/react";
+import { useState } from "react";
+import { RemoveValidationClasses, ValidateFormByClass } from "@/app/api/utils/js-helpers";
 
-export default function CierreCaja({ open, onClose,idInfoCaja }) {
+export default function CierreCaja({ open, onClose, idInfoCaja, onGet_ListaInfoCaja, }) {
+    //Sesion
+    const { data: session } = useSession();
+
+    // Estado del formulario
+    const [formData, setFormData] = useState({
+        montoCierre: "",
+    });
+
+    // Manejador de cambio en inputs
+    const handleChange = (e) => {
+        const { name, value } = e.target;
+        setFormData((prev) => ({ ...prev, [name]: value }));
+    };
+
+    const handleClose = () => {
+        setFormData({
+            montoCierre:""
+        });
+        RemoveValidationClasses("fc-montoCierre")
+        onGet_ListaInfoCaja();
+        onClose()
+    };
 
     async function onUpdate_Cierre() {
-        let monto = getItemValue("txtMontoCierre");
-        
-        if (monto == "") {
-            toast.warning("Debe indicar un monto válido");
+        let isValid = ValidateFormByClass("fc-montoCierre")
+        if(!isValid){
+            toast.warning("Debe ingresar un monto de cierre")
         }
-
         else {
             let model = {
                 idInfoCaja: idInfoCaja,
-                montoCierreCaja: monto
+                montoCierreCaja: formData.montoCierre,
+                idUsuarioModificacion: Number(session?.user.id)
             }
 
             try {
@@ -28,27 +52,20 @@ export default function CierreCaja({ open, onClose,idInfoCaja }) {
                 const result = await response.json();
 
                 if (result.status == "success") {
-                    toast.success('Caja ha sido cerrada exitosamente');
-                    document.getElementById("txtMontoCierre").value = "";
-                    onClose();
-
+                    toast.success(result.message);
+                    handleClose();
                 }
                 else {
                     console.log(result.message);
                     toast.error('Error al cerrar la caja');
 
                 }
-
             }
             catch (error) {
                 toast.error("Sucedió un error al cerrar la caja");
                 console.error(error);
             }
         }
-    }
-
-    const getItemValue = (id) => {
-        return document.getElementById(id).value;
     }
 
     return (
@@ -76,7 +93,7 @@ export default function CierreCaja({ open, onClose,idInfoCaja }) {
                         <form className="my-2 w-full flex flex-col items-center">
                             <div className="pl-4 grid grid-cols-1 md:grid-cols-1 gap-4 mx-auto w-full">
                                 <div className="md:col-span-1">
-                                    <HtmlFormInput legend={"Monto del cierre"} type={"number"} id={"txtMontoCierre"} />
+                                    <HtmlFormInput additionalClass={"fc-montoCierre"} legend={"Monto del cierre"} onChange={handleChange} type={"number"} name={"montoCierre"} value={formData.montoCierre} />
                                 </div>
                             </div>
                             <div className="mt-6 pl-4 grid grid-cols-1 md:grid-cols-1 gap-4 mx-auto">
@@ -88,7 +105,6 @@ export default function CierreCaja({ open, onClose,idInfoCaja }) {
                     </div>
                 </div>
             </div>
-            <Toaster richColors />
         </div>
     );
 }

@@ -57,8 +57,8 @@ const colorClasses = {
         dark: 'dark:bg-pink-500',
     },
     indigo: {
-        base: 'bg-indigo-500',
-        hover: 'hover:bg-indigo-700 dark:hover:bg-indigo-600',
+        base: 'bg-indigo-700',
+        hover: 'hover:bg-indigo-500 dark:hover:bg-indigo-600',
         dark: 'dark:bg-indigo-500',
     },
     amber: {
@@ -98,8 +98,8 @@ const colorClasses = {
     },
 };
 
-const HtmlTableButton = ({ color, icon: Icon, onClick, tooltip, hasCornerBadge = false, iconCorner: IconCorner }) => {
-    const baseClasses = 'm-1 relative py-2.5 px-2.5 inline-flex items-center hover:scale-110 gap-x-2 text-sm font-medium rounded-lg border shadow-sm transition-all ease-in-out duration-150 active:scale-95 disabled:opacity-50';
+const HtmlTableButton = ({ color, icon: Icon, onClick, tooltip, hasCornerBadge = false, iconCorner: IconCorner,size=16,padding=2.5 }) => {
+    const baseClasses = `m-1 relative py-${padding}  px-${padding} text-white inline-flex items-center hover:scale-110 gap-x-2 text-sm font-medium rounded-lg border shadow-sm transition-all ease-in-out duration-150 active:scale-95 disabled:opacity-50`;
     const colorClass = colorClasses[color] || colorClasses.blue;
 
     return (
@@ -108,7 +108,7 @@ const HtmlTableButton = ({ color, icon: Icon, onClick, tooltip, hasCornerBadge =
             className={`${baseClasses} ${colorClass.base} ${colorClass.hover} ${colorClass.dark}`}
             type="button"
             onClick={onClick}>
-            {Icon && <Icon size={16} strokeWidth={2.2} />} {/* Tamaño del icono ajustado */}
+            {Icon && <Icon size={size} strokeWidth={2.2} />} {/* Tamaño del icono ajustado */}
             {hasCornerBadge && (
                 <span className="flex absolute top-0 end-0 -mt-2 -me-2">
                     <span className="absolute inline-flex size-full rounded-full bg-red-400 opacity-75 dark:bg-red-600"></span>

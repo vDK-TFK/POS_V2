@@ -5,6 +5,7 @@ import MultipleSelectCliente from "@/app/components/clientes/multipleSelectClien
 import HtmlBreadCrumb from "@/app/components/HtmlHelpers/BreadCrumb";
 import HtmlButton from "@/app/components/HtmlHelpers/Button";
 import HtmlFormInput from "@/app/components/HtmlHelpers/FormInput";
+import HtmlNewLabel from "@/app/components/HtmlHelpers/Label1";
 import HtmlTableButton from "@/app/components/HtmlHelpers/TableButton";
 import AgregarCLientePos from "@/app/components/pos/agregarClientePos";
 import IngresarInfoEmpresa from "@/app/components/pos/agregarInfoEmpresa";
@@ -12,7 +13,8 @@ import AgregarProductoVenta from "@/app/components/pos/agregarProdVenta";
 import CartaComida from "@/app/components/pos/cartaComida";
 import ModalRegistrarPago from "@/app/components/pos/modalPago";
 import PrintTicket from "@/app/components/pos/printTicket";
-import { CoinsIcon, HandPlatter, Trash } from "lucide-react";
+import { Calendar, CalendarCheck, CoinsIcon, Computer, HandPlatter, Trash, User } from "lucide-react";
+import { getSession, useSession } from "next-auth/react";
 import { useEffect, useState, useCallback } from "react";
 import { Toaster, toast } from 'sonner';
 
@@ -41,6 +43,43 @@ export default function App() {
   const [existeCajaAbierta, onSet_ExisteCajaAbierta] = useState(false);
   const [cajaActual, onSet_CajaActual] = useState([]);
   const [modalInfoEmpresa, onModal_InfoEmpresa] = useState(false);
+
+  //Sesion
+  const { data: session } = useSession();
+
+  //Debe ir validando de forma cronológica (Empresa, Caja, Productos...)
+
+  //#region [INFO. EMPRESA]
+  const onSearch_InfoEmpresa = useCallback(async () => {
+    try {
+      const response = await fetch(`/api/empresa`);
+      const result = await response.json();
+
+      if (result.status === "success") {
+        onSet_InfoEmpresa(result.data);
+        onSearch_CategoriasProdVenta();
+        //onSearch_ProductosVenta();
+        onGet_CajaActual();
+      } 
+      else if (result.code === 204) {
+        onModal_InfoEmpresa(true);
+        console.log("No hay info de la empresa");
+      } 
+      else {
+        console.log("Error al obtener la info: " + result.message);
+        toast.error("Sucedió un error al obtener la información de la empresa");
+      }
+    } catch (error) {
+      console.log("Error al obtener la info: " + error);
+    }
+  }, []);
+
+  useEffect(() => {
+    onSearch_InfoEmpresa();
+  }, [onSearch_InfoEmpresa]);
+  //#endregion
+
+
 
   //#region [PRODUCTOS VENTA]
   const catalogo = [];
@@ -105,64 +144,37 @@ export default function App() {
 
   //#region [INICIO / CIERRE CAJA]
   const onGet_CajaActual = async () => {
+    const session1 = await getSession();
+    let idUsuario = Number(session1?.user.id);
     try {
-      const response = await fetch(`/api/current`);
-      if (!response.ok) {
-        throw new Error(`Error al obtener la info de caja: ${response.statusText}`);
-      }
-      const results = await response.json();
+      const response = await fetch(`/api/current/${idUsuario}`);
+      const result = await response.json();
 
-      if (results.data.length === 0) {
+      if (result.status == "success") {
+        onSet_CajaActual(result.data);
+        onSet_ExisteCajaAbierta(true);
+      }
+      else if (result.code == 204) {
         onSet_ExisteCajaAbierta(false);
         onModal_IniciarCaja(true);
         onSet_CajaActual(null);
-        //toast.warning(results.message);
-      } else {
-        onSet_CajaActual(results.data);
-        onSet_ExisteCajaAbierta(true);
+      }
+      else {
+        onSet_CajaActual(null);
+        toast.error(result.message);
       }
     } catch (error) {
-      console.error('Error:', error);
-      toast.error('Sucedió un error al obtener la info de caja');
+      console.error("Error al obtener la caja actual:", error);
+      toast.error("Sucedió un error al obtener la caja actual");
     }
   };
   //#endregion
 
-  //#region [EMPRESA]
-  const onSearch_InfoEmpresa = useCallback(async () => {
-    try {
-      const response = await fetch(`/api/empresa`);
-      if (!response.ok) {
-        throw new Error(`Error al obtener la información de la empresa: ${response.statusText}`);
-      }
-      const result = await response.json();
-
-      if (result.status === "success") {
-        onSet_InfoEmpresa(result.data);
-        onSearch_CategoriasProdVenta();
-        onSearch_ProductosVenta();
-        onGet_CajaActual();
-      } else if (result.code === 204) {
-        onModal_InfoEmpresa(true);
-        console.log("No hay info de la empresa");
-      } else {
-        console.log("Error al obtener la info: " + result.message);
-        toast.error("Sucedió un error al obtener la información de la empresa");
-      }
-    } catch (error) {
-      console.log("Error al obtener la info: " + error);
-    }
-  }, []);
-
-  useEffect(() => {
-    onSearch_InfoEmpresa();
-  }, [onSearch_InfoEmpresa]);
-  //#endregion
-
+  
   //#region [CLIENTES]
   const onSearch_Cliente = async (value) => {
     try {
-      const response = await fetch(`/api/clientes/${value}`);
+      const response = await fetch(`/api/clientes/buscar/${value}`);
       if (!response.ok) {
         throw new Error(`Error al obtener clientes: ${response.statusText}`);
       }
@@ -174,7 +186,7 @@ export default function App() {
       } else {
         if (data.length === 1) {
           toast.success('Se ha encontrado el cliente');
-          setNombreCliente(data[0].nombre + " " + data[0].apellido);
+          setNombreCliente(data[0].nombreCompleto);
           setModelReceptor(data[0]);
           AddRemoveClassById("txtSelCliente", "is-valid", "is-invalid");
         } else {
@@ -199,7 +211,7 @@ export default function App() {
   };
 
   const onChange_Cliente = (cliente) => {
-    setNombreCliente(cliente.nombre + " " + cliente.apellido);
+    setNombreCliente(cliente.nombreCompleto);
     setModelReceptor(cliente);
     onModal_MultiplesClientes(false);
     AddRemoveClassById("txtSelCliente", "is-valid", "is-invalid");
@@ -314,17 +326,17 @@ export default function App() {
 
   //#region [ON_INIT]
   useEffect(() => {
-    const timer = setTimeout(() => {
-      const tabTodas = document.getElementById("tab_");
-      if (tabTodas) {
-        tabTodas.classList.add("tab-active");
-        setProductos(listadoProductos);
-        setLoading(false);
-      }
-    }, 0);
 
-    return () => clearTimeout(timer);
+
+
+    const tabTodas = document.getElementById("tab_");
+    if (tabTodas) {
+      tabTodas.classList.add("tab-active");
+      setProductos(listadoProductos);
+      setLoading(false);
+    }
   }, [categorias, listadoProductos]);
+
   //#endregion
 
   return (
@@ -342,7 +354,7 @@ export default function App() {
             <div className="mt-1">
               {
                 existeCajaAbierta ? (
-                  <HtmlButton color={"purple"} legend={"Productos"} icon={HandPlatter} onClick={() => openModalAgregar(true)} />
+                  <HtmlButton color={"indigo"} legend={"Productos"} icon={HandPlatter} onClick={() => openModalAgregar(true)} />
                 ) : null
               }
             </div>
@@ -404,108 +416,129 @@ export default function App() {
       </div>
       {
         existeCajaAbierta ? (
-          <aside style={{ overflow: 'auto', width: '38%', height: '50rem' }} className="bg-gray-200 dark:bg-gray-800 overflow-y-auto">
-            <div className="p-2">
-              <h2 className="font-semibold pt-4 pl-4 text-lg dark:text-gray-100">Fecha: {fechaActual}</h2>
-              <h2 className="font-semibold pt-4 pl-4 text-lg dark:text-gray-100">Caja Actual: # {!cajaActual.idInfoCaja ? 0 : cajaActual.idInfoCaja}</h2>
+          <aside style={{ overflow: 'auto', width: '35%', height: '100vh' }} className=" overflow-y-auto">
+            <div className="w-full pl-2 pr-1 ">
+              <div className="block w-full h-screen  p-4 bg-white border border-gray-200 rounded-lg shadow">
 
-            </div>
-            <div className="p-4">
-              <HtmlFormInput value={nombreCliente} id={"txtSelCliente"} legend={"Nombre del cliente"} onChange={(e) => setNombreCliente(e.target.value)} onKeyUp={onSelect_Enter} />
-            </div>
-
-            <div className="p-4">
-              <div style={{ maxHeight: '22rem', overflowY: 'auto' }}>
-                <table className="w-full border-collapse table-auto">
-                  <thead>
-                    <tr className="bg-gray-200">
-                      <th className="px-3 py-3 text-left text-sm font-medium text-black uppercase w-15 dark:bg-gray-700 dark:text-white">Cant.</th>
-                      <th className="px-5 py-3 text-left text-sm font-medium text-black uppercase w-20 dark:bg-gray-700 dark:text-white">Detalles</th>
-                      <th className="px-15 py-3 text-left text-sm font-medium text-black uppercase w-5 dark:bg-gray-700 dark:text-white">Precio</th>
-                      <th className="px-6 py-3 text-left text-sm font-medium text-black uppercase dark:bg-gray-700 dark:text-white">...</th>
-                      <th hidden className="px-6 py-3 text-left text-sm font-medium text-black uppercase dark:bg-gray-700 dark:text-white">IdProducto</th>
-                      <th hidden className="px-6 py-3 text-left text-sm font-medium text-black uppercase dark:bg-gray-700 dark:text-white">CantMinima</th>
-                      <th hidden className="px-6 py-3 text-left text-sm font-medium text-black uppercase dark:bg-gray-700 dark:text-white">CantDisponible</th>
-
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {rows.map((row) => (
-                      <tr key={row.id}>
-                        <td className="px-2 py-4 whitespace-nowrap">
-                          <input
-                            type="number"
-                            value={row.cantidad}
-                            max={row.cantProducto}
-                            onChange={(e) => onChange_CantPrecio(e, row.id, 'cantidad')}
-                            className="dark:bg-gray-900 dark:text-white border border-gray-300 text-gray-900 text-xs rounded-md focus:ring-blue-500 focus:border-blue-500 block w-14 p-1"
-                          />
-                        </td>
-                        <td className="py-4 whitespace-nowrap">
-                          <input
-                            type="text"
-                            value={row.detalles}
-                            onChange={(e) => onChange_CantPrecio(e, row.id, 'detalles')}
-                            className="dark:bg-gray-900 dark:text-white border border-gray-300 text-gray-900 text-xs rounded-md focus:ring-blue-500 focus:border-blue-500 block w-35 p-1"
-                          />
-                        </td>
-                        <td className="px-3 py-4 whitespace-nowrap">
-                          <input
-                            type="text"
-                            value={row.precio}
-                            onChange={(e) => onChange_CantPrecio(e, row.id, 'precio')}
-                            className="dark:bg-gray-900 dark:text-white border border-gray-300 text-gray-900 text-xs rounded-md focus:ring-blue-500 focus:border-blue-500 block w-16 p-1"
-                          />
-                        </td>
-                        <td className="px-3 py-4 whitespace-nowrap">
-                          <HtmlTableButton color={"red"} icon={Trash} onClick={() => onDelete_LineaDetalle(row.id)} />
-                        </td>
-                        <td hidden className="px-3 py-4 whitespace-nowrap">
-                          <input
-                            type="text"
-                            value={row.idProductoVenta}
-                            className="dark:bg-gray-900 dark:text-white border border-gray-300 text-gray-900 text-xs rounded-md focus:ring-blue-500 focus:border-blue-500 block w-16 p-1"
-                          />
-                        </td>
-                        <td hidden className="px-3 py-4 whitespace-nowrap">
-                          <input
-                            type="text"
-                            value={row.cantMinima}
-                            className="dark:bg-gray-900 dark:text-white border border-gray-300 text-gray-900 text-xs rounded-md focus:ring-blue-500 focus:border-blue-500 block w-16 p-1"
-                          />
-                        </td>
-                        <td hidden className="px-3 py-4 whitespace-nowrap">
-                          <input
-                            type="text"
-                            value={row.cantProducto}
-                            className="dark:bg-gray-900 dark:text-white border border-gray-300 text-gray-900 text-xs rounded-md focus:ring-blue-500 focus:border-blue-500 block w-16 p-1"
-                          />
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-
-              <div className="px-2 pt-2">
-                {total > 0 && (
-                  <div className="flex justify-between dark:text-gray-100">
-                    <h3 className="font-semibold text-lg">Total Factura:</h3>
-                    <p className="font-semibold text-lg"><span>₡</span> {total.toFixed(2)}</p>
-                  </div>
-                )}
-              </div>
-            </div>
-            <div className="pl-4 pr-4 grid grid-rows-12">
-              {total > 0 && (
-
-                <div className="row-span-4 flex items-center ">
-                  <HtmlButton color={"green"} legend={"Pagar"} icon={CoinsIcon} onClick={() => {
-                    onModal_RegistrarPago(true); onCreate_ModelFactura(); onModal_Print(false);
-                  }} />
+                {/* Legends info */}
+                <div className="mb-3 grid grid-cols-1 md:grid-cols-1 gap-4 mx-auto">
+                  <HtmlNewLabel icon={User} legend={"Vendedor: " + session?.user.name} color={"lime"} />
                 </div>
-              )}
+
+                <div className="mb-3 grid grid-cols-1 md:grid-cols-2 gap-4 mx-auto">
+                  <HtmlNewLabel icon={Calendar} legend={fechaActual} color={"blue"} />
+                  <HtmlNewLabel icon={Computer} legend={"Caja No: " + cajaActual.idInfoCaja} color={"green"} />
+
+                  {/* <div className="col-span-1">
+                  </div> */}
+                </div>
+                {/* Legends info */}
+
+                {/* Client Filter */}
+                <HtmlFormInput additionalClass={"text-xs"} tooltip={"Ingresa un valor y presiona enter para buscar"} value={nombreCliente} id={"txtSelCliente"} legend={"Nombre del cliente"} onChange={(e) => setNombreCliente(e.target.value)} onKeyUp={onSelect_Enter} />
+
+                {/* Details */}
+                <div className="">
+                  <div style={{ maxHeight: '18rem', overflowY: 'auto' }}>
+                    <table className="w-full border-collapse table-auto">
+                      <thead>
+                        <tr className="bg-gray-200">
+                          <th className="px-3 py-3 text-left text-sm font-medium text-black uppercase w-15 dark:bg-gray-700 dark:text-white">Cant.</th>
+                          <th className="px-5 py-3 text-left text-sm font-medium text-black uppercase w-20 dark:bg-gray-700 dark:text-white">Detalles</th>
+                          <th className="px-15 py-3 text-left text-sm font-medium text-black uppercase w-5 dark:bg-gray-700 dark:text-white">Precio</th>
+                          <th className="px-6 py-3 text-left text-sm font-medium text-black uppercase dark:bg-gray-700 dark:text-white">...</th>
+                          <th hidden className="px-6 py-3 text-left text-sm font-medium text-black uppercase dark:bg-gray-700 dark:text-white">IdProducto</th>
+                          <th hidden className="px-6 py-3 text-left text-sm font-medium text-black uppercase dark:bg-gray-700 dark:text-white">CantMinima</th>
+                          <th hidden className="px-6 py-3 text-left text-sm font-medium text-black uppercase dark:bg-gray-700 dark:text-white">CantDisponible</th>
+
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {rows.map((row) => (
+                          <tr key={row.id}>
+                            <td className="px-2 py-4 whitespace-nowrap">
+                              <input
+                                type="number"
+                                value={row.cantidad}
+                                max={row.cantProducto}
+                                onChange={(e) => onChange_CantPrecio(e, row.id, 'cantidad')}
+                                className="dark:bg-gray-900 dark:text-white border border-gray-300 text-gray-900 text-xs rounded-md focus:ring-blue-500 focus:border-blue-500 block w-14 p-1"
+                              />
+                            </td>
+                            <td className="py-4 whitespace-nowrap">
+                              <input
+                                type="text"
+                                value={row.detalles}
+                                onChange={(e) => onChange_CantPrecio(e, row.id, 'detalles')}
+                                className="dark:bg-gray-900 dark:text-white border border-gray-300 text-gray-900 text-xs rounded-md focus:ring-blue-500 focus:border-blue-500 block w-35 p-1"
+                              />
+                            </td>
+                            <td className="px-3 py-4 whitespace-nowrap">
+                              <input
+                                type="text"
+                                value={row.precio}
+                                onChange={(e) => onChange_CantPrecio(e, row.id, 'precio')}
+                                className="dark:bg-gray-900 dark:text-white border border-gray-300 text-gray-900 text-xs rounded-md focus:ring-blue-500 focus:border-blue-500 block w-16 p-1"
+                              />
+                            </td>
+                            <td className="px-3 py-4 whitespace-nowrap">
+                              <HtmlTableButton tooltip={"Eliminar Línea"} color={"red"} size={12} padding={2} icon={Trash} onClick={() => onDelete_LineaDetalle(row.id)} />
+                            </td>
+                            <td hidden className="px-3 py-4 whitespace-nowrap">
+                              <input
+                                type="text"
+                                value={row.idProductoVenta}
+                                className="dark:bg-gray-900 dark:text-white border border-gray-300 text-gray-900 text-xs rounded-md focus:ring-blue-500 focus:border-blue-500 block w-16 p-1"
+                              />
+                            </td>
+                            <td hidden className="px-3 py-4 whitespace-nowrap">
+                              <input
+                                type="text"
+                                value={row.cantMinima}
+                                className="dark:bg-gray-900 dark:text-white border border-gray-300 text-gray-900 text-xs rounded-md focus:ring-blue-500 focus:border-blue-500 block w-16 p-1"
+                              />
+                            </td>
+                            <td hidden className="px-3 py-4 whitespace-nowrap">
+                              <input
+                                type="text"
+                                value={row.cantProducto}
+                                className="dark:bg-gray-900 dark:text-white border border-gray-300 text-gray-900 text-xs rounded-md focus:ring-blue-500 focus:border-blue-500 block w-16 p-1"
+                              />
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+
+                  <div className="px-2 pt-2">
+                    {total > 0 && (
+                      <div className="flex justify-between dark:text-gray-100">
+                        <h3 className="font-semibold text-lg">Total Factura:</h3>
+                        <p className="font-semibold text-lg"><span>₡</span> {total.toFixed(2)}</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+                <div className="pl-4 pr-4 grid grid-rows-12">
+                  {total > 0 && (
+
+                    <div className="row-span-4 flex items-center ">
+                      <HtmlButton color={"green"} legend={"Pagar"} icon={CoinsIcon} onClick={() => {
+                        onModal_RegistrarPago(true); onCreate_ModelFactura(); onModal_Print(false);
+                      }} />
+                    </div>
+                  )}
+                </div>
+
+                
+
+              </div>
             </div>
+
+
+
+
           </aside>
         ) : null
       }
@@ -517,7 +550,6 @@ export default function App() {
       <PrintTicket open={modalPrint} onClose={() => { onModal_Print(false) }} json={objectImpresion} />
       <IniciarCaja open={modalIniciarCaja} onClose={() => { onModal_IniciarCaja(false) }} />
       <IngresarInfoEmpresa open={modalInfoEmpresa} onClose={() => { onModal_InfoEmpresa(false) }} />
-      <Toaster richColors />
     </div>
 
   );

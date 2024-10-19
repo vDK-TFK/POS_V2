@@ -88,7 +88,10 @@ export default function AgregarCliente({ open, onClose, onGet_ListaClientes }) {
 
       if (data.status == "success") {
         toast.success(data.message)
-        onGet_ListaClientes();
+        if(onGet_ListaClientes){
+          onGet_ListaClientes();
+        }
+
         handleClose();
       }
       else {

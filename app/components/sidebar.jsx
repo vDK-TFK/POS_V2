@@ -37,7 +37,7 @@ export default function Sidebar() {
   const iconMap = {
     'Dashboard': <icon.Gauge size={20} />,
     'Info. Caja': <icon.Computer size={20} />,
-    'POS': <icon.Utensils size={20} />,
+    'Facturar': <icon.CircleDollarSign size={20} />,
     'Facturas': <icon.ScrollText size={20} />,
     'Inventario': <icon.Warehouse size={20} />,
     'Proveedores': <icon.Truck size={20} />,

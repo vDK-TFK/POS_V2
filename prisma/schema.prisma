@@ -279,11 +279,14 @@ model DetallesFactura {
 
 model InfoCaja {
   idInfoCaja Int @id @default(autoincrement())
-  fechaApertura DateTime 
+  fechaApertura DateTime @default(now())
   fechaCierre DateTime?
-  idUsuario Int
-  fechaConsultaCaja DateTime
-  montoInicioCaja Decimal @db.Decimal(18, 5)
+  idUsuarioCreacion Int?
+  fechaCreacion DateTime @default(now())
+  idUsuarioModificacion Int?
+  fechaModificacion DateTime?
+  fechaConsultaCaja DateTime?
+  montoInicioCaja Decimal? @db.Decimal(18, 5)
   montoCierreCaja Decimal? @db.Decimal(18, 5)
 
   facturas Facturas[]
@@ -311,9 +314,9 @@ model Movimientos{
   idUsuarioCreacion Int?
   fechaCreacion DateTime @default(now())
   idUsuarioModificacion Int?
-  fechaModificacion DateTime @default(now())
-  motivo String
+  fechaModificacion DateTime?
   idInfoCaja Int
+  motivo String
   monto Decimal @db.Decimal(18, 5)
 
   TipoMovimiento TipoMovimiento @relation(fields: [idTipoMovimiento], references: [idTipoMovimiento])

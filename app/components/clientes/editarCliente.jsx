@@ -145,7 +145,7 @@ export default function EditarCliente({ open, onClose, idCliente, onGet_ListaCli
     }
     catch (error) {
       console.error('Error al obtener el cliente:', error);
-      toast.error('Sucedió un error al obtener el usuario: ' + error);
+      toast.error('Sucedió un error al obtener el cliente: ' + error);
     }
     finally {
       onSet_onLoading(false);
