@@ -1,13 +1,15 @@
 import { useEffect, useState } from 'react';
 
-const HtmlFormSelect = ({ id, legend, colSize, options, additionalClass, selectedValue, onChange,name }) => {
+const HtmlFormSelect = ({ id, legend, colSize, options, additionalClass, selectedValue, onChange,name,reset }) => {
     const [selectedOption, setSelectedOption] = useState('');
 
     useEffect(() => {
-        if (selectedValue !== undefined) {
+        if (reset) {
+            setSelectedOption("");
+        } else if (selectedValue !== undefined) {
             setSelectedOption(selectedValue);
         }
-    }, [selectedValue]);
+    }, [reset, selectedValue]);
 
     const handleSelectChange = (event) => {
         setSelectedOption(event.target.value);

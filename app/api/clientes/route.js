@@ -31,7 +31,7 @@ export async function GET() {
       status: "success",
       data: listaClientes,
       message: ""
-    }, { status: 200 });
+    });
 
 
 

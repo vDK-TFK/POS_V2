@@ -1,14 +1,19 @@
 import { Pointer, User, X } from "lucide-react";
 import HtmlTableButton from "../HtmlHelpers/TableButton";
+import { useState } from "react";
 
 export default function MultipleSelectCliente({ open, onClose, listaClientes, handleClienteInput }) {
-  if (!open) {
-    return null;
-  }
+  //Paginación
+  const [registrosPorPagina] = useState(3);
+  const [paginaActual, onSet_PaginaActual] = useState(1);
+  const indexOfLastClient = paginaActual * registrosPorPagina;
+  const indexOfFirstClient = indexOfLastClient - registrosPorPagina;
+  const currentClientes = listaClientes.slice(indexOfFirstClient, indexOfLastClient);
+  const paginate = (pageNumber) => onSet_PaginaActual(pageNumber);
+
 
   return (
     <div
-      onClick={onClose}
       className={`fixed inset-0 flex justify-center items-center transition-opacity ${open ? "visible bg-black bg-opacity-40 dark:bg-opacity-50" : "invisible"}`}>
       <div 
         onClick={(e) => e.stopPropagation()} 
@@ -36,12 +41,12 @@ export default function MultipleSelectCliente({ open, onClose, listaClientes, ha
                 </tr>
               </thead>
               <tbody>
-                {listaClientes.map((c, index) => (
+                {currentClientes.map((c, index) => (
                   <tr key={index} className="bg-white dark:bg-gray-800">
                     <td hidden className="px-6 py-4">{c.clienteId}</td>
-                    <td className="px-6 py-4"><span>{c.nombre}</span> <span>{c.apellido}</span></td>
+                    <td className="px-6 py-4"><span>{c.nombreCompleto}</span></td>
                     <td className="px-6 py-4">
-                      <HtmlTableButton color={"blue"} icon={Pointer} onClick={() => handleClienteInput(c)} />
+                      <HtmlTableButton tooltip={"Seleccionar el cliente"} color={"blue"} icon={Pointer} onClick={() => handleClienteInput(c)} />
                     </td>
                   </tr>
                 ))}
@@ -49,6 +54,44 @@ export default function MultipleSelectCliente({ open, onClose, listaClientes, ha
             </table>
           </div>
         </div>
+        {/* Paginación */}
+        <nav className="flex items-center justify-between pt-4" aria-label="Table navigation">
+          <ul className="inline-flex -space-x-px text-sm h-8">
+            {/* Botón Anterior */}
+            <li>
+              <button
+                onClick={() => paginate(paginaActual - 1)}
+                disabled={paginaActual === 1}
+                className={`flex items-center justify-center px-3 h-8 ${paginaActual === 1 ? "cursor-not-allowed opacity-50" : "hover:bg-gray-100 dark:hover:bg-gray-700"}`}
+              >
+                Anterior
+              </button>
+            </li>
+
+            {/* Números de página */}
+            {[...Array(Math.ceil(listaClientes.length / registrosPorPagina)).keys()].map(number => (
+              <li key={number + 1}>
+                <button
+                  onClick={() => paginate(number + 1)}
+                  className={`flex items-center justify-center px-3 h-8 ${paginaActual === number + 1 ? "bg-gray-300 dark:bg-gray-600" : "hover:bg-gray-100 dark:hover:bg-gray-700"}`}
+                >
+                  {number + 1}
+                </button>
+              </li>
+            ))}
+
+            {/* Botón Siguiente */}
+            <li>
+              <button
+                onClick={() => paginate(paginaActual + 1)}
+                disabled={paginaActual === Math.ceil(listaClientes.length / registrosPorPagina)}
+                className={`flex items-center justify-center px-3 h-8 ${paginaActual === Math.ceil(listaClientes.length / registrosPorPagina) ? "cursor-not-allowed opacity-50" : "hover:bg-gray-100 dark:hover:bg-gray-700"}`}
+              >
+                Siguiente
+              </button>
+            </li>
+          </ul>
+        </nav>
       </div>
     </div>
   );

@@ -143,7 +143,6 @@ export default function ListaMovimientos({ open, onClose, cajaActual, idInfoCaja
           RemoveValidationClasses("fc-movimientos")
           setFormData({
             monto: "",
-            idTipoMovimiento: "",
             motivo: ""
           });
         } else {

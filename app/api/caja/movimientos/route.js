@@ -6,6 +6,7 @@ const prisma = new PrismaClient();
 export async function POST(request) {
     try {
         const data = await request.json();
+        console.log(JSON.stringify(data))
 
         const newMovimiento = await prisma.movimientos.create({
             data: {

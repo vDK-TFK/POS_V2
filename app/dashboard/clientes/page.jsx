@@ -63,7 +63,7 @@ export default function Clientes() {
         }
         catch (error) {
             console.error('Error al obtener la lista de clientes:', error);
-            toast.error('Sucedió un error al obtener la lista de usuarios');
+            toast.error('Sucedió un error al obtener la lista de clientes');
             onSet_ListaClientes([])
         }
         finally {

@@ -1,13 +1,10 @@
-import db from '@/app/lib/db';
-import { PrismaClient } from '@prisma/client';
-import { NextResponse } from 'next/server';
-import { FindById } from '../utils/db-methods';
+import { PrismaClient } from "@prisma/client";
+import { NextResponse } from "next/server";
 
-const prisma = new PrismaClient()
+const prisma = new PrismaClient();
 
 //Agregar Producto de Venta
 export async function POST(request) {
-
   try {
     const model = await request.json();
 
@@ -22,8 +19,7 @@ export async function POST(request) {
         idCategoriaProdVenta: model.idCategoriaProdVenta,
         noRebajaInventario: model.noRebajaInventario,
         imagen: model.imagen ? model.imagen : null,
-        tipoImagen: model.tipoImagen ? model.tipoImagen : null
-
+        tipoImagen: model.tipoImagen ? model.tipoImagen : null,
       },
     });
 
@@ -32,7 +28,7 @@ export async function POST(request) {
       return NextResponse.json({
         code: 400,
         status: "error",
-        message: "Error al registrar el producto"
+        message: "Error al registrar el producto",
       });
     }
 
@@ -40,69 +36,136 @@ export async function POST(request) {
       code: 200,
       status: "success",
       data: true,
-      message: "Producto registrado satisfactoriamente"
+      message: "Producto registrado satisfactoriamente",
     });
-
-  }
-  catch (error) {
-    console.error('Error al registrar el producto:', error);
+  } catch (error) {
+    console.error("Error al registrar el producto:", error);
     return NextResponse.json({
       code: 500,
       status: "error",
-      message: "Error al registrar el producto: " + error.message
+      message: "Error al registrar el producto: " + error.message,
     });
   }
-
 }
 
-
-
+//Obtener
 export async function GET() {
-   const productosVenta = await db.productoVenta.findMany({where:{eliminado:false}})
-   return NextResponse.json(productosVenta);
- }
+  try {
+    const listaProdVenta = await prisma.productoVenta.findMany({
+      where:{
+        eliminado:false
+      }
+    });
 
- export async function GETBYID({id}) {
-  const cliente = await FindById("clientes",id)
-  return NextResponse.json(cliente);
-}
+    if (listaProdVenta.length == 0) {
+      return NextResponse.json({
+        code: 204,
+        status: "failed",
+        message: "No se encontraron registros.",
+      });
+    }
 
- export async function DELETE(request){
-  const data = await request.json();
-  console.log(data);
-  let model = {
-    eliminado: data.eliminado
-  };
-
-  const prodEliminado = await prisma.productoVenta.update({ where: { idProductoVenta:data.idProductoVenta }, data:model });
-  return NextResponse.json(prodEliminado); 
-
-}
-
-export async function PUT(request){
-  const data = await request.json();
-
-  var modelUpd = {
-    nombre: data.nombre,
-    cantidad: data.cantidad,
-    cantidadMinima: data.cantidadMinima, 
-    precio: data.precio,
-    idCategoriaProdVenta: data.idCategoriaProdVenta,
-  };
-
-  if(data.actualizaImagen){
-    modelUpd.imagen = data.imagen ? data.imagen : null;
-    modelUpd.tipoImagen = data.tipoImagen ? data.tipoImagen : null;
-  };
-  
-  
-  const updProducto = await db.productoVenta.update({
-    where:{ idProductoVenta:data.idProductoVenta },
-    data:modelUpd
+    return NextResponse.json({
+      code: 200,
+      status: "success",
+      data: listaProdVenta,
+      message: "Se han obtenido los productos",
+    });
+  } catch (error) {
+    console.error("Error al obtener los productos:", error);
+    return NextResponse.json(
+      {
+        code: 500,
+        status: "error",
+        message: "Error al obtener los productos: " + error.message,
+      },
+      { status: 500 }
+    );
   }
-);
-return NextResponse.json(updProducto);
-
 }
 
+export async function DELETE(request) {
+    try {
+      const model = await request.json();
 
+      const prodVentaEliminar = await prisma.productoVenta.update({
+        data: {
+          eliminado: model.eliminado,
+        },
+        where: {
+          idProductoVenta: model.idProductoVenta,
+        },
+      });
+
+      // Verificar si se elimino el producto
+      if (!prodVentaEliminar) {
+        return NextResponse.json({
+          code: 400,
+          status: "error",
+          message: "Error al eliminar el producto",
+        });
+      }
+
+      return NextResponse.json({
+        code: 200,
+        status: "success",
+        data: prodVentaEliminar,
+        message: "Producto eliminado satisfactoriamente",
+      });
+    } catch (error) {
+      console.error("Error al eliminar el producto:", error);
+      return NextResponse.json({
+        code: 500,
+        status: "error",
+        message: "Error al eliminar el producto: " + error.message,
+      });
+    }
+}
+
+//Editar Producto de Venta
+export async function PUT(request) {
+  try {
+    const model = await request.json();
+
+    const updateProdVenta = await prisma.productoVenta.update({
+      data: {
+        nombre: model.nombre,
+        cantidad: model.cantidad,
+        cantidadMinima: model.cantidadMinima,
+        precio: model.precio,
+        idUsuarioModificacion: model.idUsuarioModificacion,
+        fechaModificacion: new Date(),
+        idCategoriaProdVenta: model.idCategoriaProdVenta,
+        noRebajaInventario: model.noRebajaInventario,
+        imagen: model.imagen,
+        tipoImagen: model.tipoImagen,
+      },
+      where: {
+        idProductoVenta: model.idProductoVenta,
+      },
+    });
+
+    // Verificar si se actualizó el prod.
+    if (!updateProdVenta) {
+      return NextResponse.json({
+        code: 400,
+        status: "error",
+        message: "Error al actualizar el producto",
+      });
+    }
+
+    return NextResponse.json({
+      code: 200,
+      status: "success",
+      data: true,
+      message: "Producto actualizado satisfactoriamente",
+    });
+  } catch (error) {
+    console.error("Error al actualizar el producto:", error);
+    return NextResponse.json({
+      code: 500,
+      status: "error",
+      message: "Error al actualizar el producto: " + error.message,
+    });
+  }
+}
