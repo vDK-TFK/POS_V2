@@ -216,6 +216,20 @@ export function RemoveClassesAndAdd(id, add) {
     }
 }
 
+export function RemoveClassesAndAddByName(name, add) {
+    const elements = document.getElementsByName(name);
+    if (elements.length > 0) {
+        const element = elements[0];
+        element.classList.remove("is-invalid");
+        element.classList.remove("is-warning");
+        element.classList.remove("is-valid");
+
+        element.classList.add(add);
+    } else {
+        console.warn(`Elemento con NAME "${name}" no encontrado.`);
+    }
+}
+
 export function RemoveValidationClasses(className){
 
     const elements = document.getElementsByClassName(className);

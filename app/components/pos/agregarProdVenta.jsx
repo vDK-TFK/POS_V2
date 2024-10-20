@@ -1,31 +1,73 @@
-import { X } from "lucide-react";
+import { Plus, X, XCircle } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Toaster, toast } from 'sonner';
 import HtmlFormInput from "../HtmlHelpers/FormInput";
 import HtmlFormSelect from "../HtmlHelpers/FormSelect";
 import Image from "next/image";
+import { ClipLoader } from "react-spinners";
+import HtmlButton from "../HtmlHelpers/Button";
+import { RemoveClassesAndAdd, RemoveClassesAndAddByName, RemoveValidationClasses, ValidateFormByClass } from "@/app/api/utils/js-helpers";
+import HtmlCheckButton from "../HtmlHelpers/CheckButton";
+import { useSession } from "next-auth/react";
+
 
 
 export default function AgregarProductoVenta({ open, onClose, reloadProducts, infoEmpresa }) {
   const [catalogoCategoria, setCatalogoCategorias] = useState([]);
   const [imagePreview, setImagePreview] = useState(null);
   const [imageType, setImageType] = useState(null);
-  var isValid = true;
+  const [onLoading, onSet_Loading] = useState(false);
 
-  const limpiarCamposForm = () => {
-    const elements = document.getElementsByClassName("fc-product");
-    Array.from(elements).forEach((element) => {
-      element.value = "";
-      element.classList.remove('is-invalid');
-      element.classList.remove('is-valid');
-    });
-    setImagePreview(null);
-    const fileInput = document.getElementById("txtImagenProducto");
-    if (fileInput) {
-      fileInput.value = "";
+   //Sesion
+   const { data: session } = useSession();
+
+  // Estado del formulario
+  const [formData, setFormData] = useState({
+    nombre: "",
+    categoria: "",
+    cantDisponible: "",
+    cantMinima: "",
+    precio: "",
+    imagen:null,
+    tipoImagen:null,
+    noRebajaInventario:false
+  });
+
+  // Manejador de cambio en inputs
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+
+    //Valida cantidades positivas
+    if ((name === "cantMinima" || name === "cantDisponible" || name === "precio") && value <= 0) {
+      RemoveClassesAndAddByName(name,"is-invalid");
+      toast.warning("No puede colocar valores negativos o en cero");
+      setFormData((prev) => ({ ...prev, [name]: "" }));
+      return;
     }
+    else{
+      RemoveClassesAndAddByName(name,"is-valid");
+
+    }
+
+
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleClose = () => {
+    RemoveValidationClasses("fc-product")
+    setFormData({
+      nombre: "",
+      categoria: "",
+      cantDisponible: "",
+      cantMinima: "",
+      precio: "",
+      imagen: null,
+      tipoImagen: null,
+      noRebajaInventario: false
+    })
     setImagePreview(null);
     setImageType(null);
+    onClose()
 
   };
 
@@ -82,30 +124,14 @@ export default function AgregarProductoVenta({ open, onClose, reloadProducts, in
 
   const handleSubmit = (e, isFromButton) => {
     e.preventDefault();
-    isValid = true;
-    const elements = document.getElementsByClassName("fc-product");
+    let isValidForm = ValidateFormByClass("fc-product");
 
-    Array.from(elements).forEach((item) => {
-      if (item.value.trim() == "") {
-        item.classList.add('is-invalid');
-        item.classList.remove('is-valid');
-        isValid = false;
-      }
-      else {
-        item.classList.add('is-valid');
-        item.classList.remove('is-invalid');
-      }
-    });
-
-    let cantMinima = getItemValue("txtCantMinima");
-    let cantDisponible = getItemValue("txtCantDisponible")
-
-    if (!isValid && isFromButton) {
-      toast.warning('Aún existen campos por completar');
+    if(!isValidForm && isFromButton){
+      toast.warning("Aún existen campos por completar")
     }
-    else if (isValid && Number(cantMinima) >= Number(cantDisponible)) {
-      document.getElementById("txtCantMinima").classList.remove('is-valid');
-      document.getElementById("txtCantMinima").classList.add('is-invalid');
+
+    else if (isValidForm && Number(formData.cantMinima) >= Number(formData.cantDisponible)) {
+      RemoveClassesAndAddByName("cantMinima","is-invalid");
       toast.warning('Cantidad mínima debe ser menor a la cantidad disponible');
     }
     else {
@@ -117,9 +143,9 @@ export default function AgregarProductoVenta({ open, onClose, reloadProducts, in
   };
 
   async function agregarProdVenta() {
-    var bytesImage;
-    var typeImage;
-    console.log(infoEmpresa)
+    var bytesImage = null;
+    var typeImage = null;
+
     if (imagePreview && imageType) {
       if (imageType === 'image/png') {
         bytesImage = imagePreview.replace(/^data:image\/png;base64,/, '');
@@ -129,21 +155,19 @@ export default function AgregarProductoVenta({ open, onClose, reloadProducts, in
       typeImage = imageType;
     }
 
-    if (imagePreview == null) {
-      const bufferImagen = Buffer.from(infoEmpresa.logo.data);
-      bytesImage = bufferImagen.toString('base64');
-      typeImage = infoEmpresa.tipoImagen;
-    }
-
     let model = {
-      nombre: getItemValue("txtNombreProducto"),
-      cantidad: Number(getItemValue("txtCantDisponible")),
-      cantidadMinima: Number(getItemValue("txtCantMinima")),
-      precio: Number(getItemValue("txtPrecioProducto")),
-      idCategoriaProdVenta: Number(getItemValue("txtSelectCategoria")),
+      nombre:formData.nombre,
+      cantidad: Number(formData.cantDisponible),
+      cantidadMinima: Number(formData.cantMinima),
+      precio:Number(formData.precio),
+      idUsuarioCreacion:  Number(session?.user.id),
+      idCategoriaProdVenta:Number(formData.categoria),
+      noRebajaInventario:formData.noRebajaInventario,
       imagen: bytesImage,
       tipoImagen: typeImage
     }
+    
+    onSet_Loading(true);
 
     try {
       const response = await fetch('/api/productosventa', {
@@ -152,81 +176,89 @@ export default function AgregarProductoVenta({ open, onClose, reloadProducts, in
         body: JSON.stringify(model)
       });
 
-      if (response.ok) {
-        const data = await response.json();
-        onClose();
-        toast.success('Producto registrado satisfactoriamente');
-        limpiarCamposForm();
+      const data = await response.json();
 
-        setTimeout(() => {
+      if (data.status == "success") {
+        toast.success(data.message);
+        handleClose();
+        if(reloadProducts){
           reloadProducts();
-        }, 1000);
+        }
+
       }
       else {
-        throw new Error(`Error: ${response.statusText}`);
+        toast.error(data.message)
       }
     }
     catch (error) {
       toast.error("Sucedió un error al agregar el producto", error);
-      console.error(error);
+      console.error("Sucedió un error al agregar el producto",error);
+    }
+    finally{
+      onSet_Loading(false)
     }
 
   }
 
-  const getItemValue = (id) => {
-    return document.getElementById(id).value;
-  }
+
 
   return (
     <div
-      onClick={onClose}
       className={`fixed inset-0 flex justify-center items-center transition-opacity ${open ? "visible bg-black bg-opacity-40 dark:bg-opacity-50" : "invisible"}`}
     >
       <div onClick={(e) => e.stopPropagation()} className={`bg-white dark:bg-gray-800 rounded-lg shadow-lg p-8 transition-all ${open ? "scale-100 opacity-100" : "scale-90 opacity-0"} m-auto max-w-3xl w-full md:w-2/3 lg:w-7/12`}>
-        <button onClick={onClose} className="absolute top-4 right-4 p-2 rounded-lg text-gray-400 hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-gray-700 dark:hover:text-gray-300">
-          <X size={20} strokeWidth={2} onClick={limpiarCamposForm} />
+        <button className="absolute top-4 right-4 p-2 rounded-lg text-gray-400 hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-gray-700 dark:hover:text-gray-300">
+          <X size={20} strokeWidth={2} onClick={handleClose} />
         </button>
         <div className="flex flex-col items-center">
           <h2 className="text-2xl font-bold flex items-center gap-3 text-gray-900 dark:text-gray-100">
             Agregar Nuevo Producto
           </h2>
           <hr className="w-full border-t border-gray-600 dark:border-gray-500 mt-2"></hr>
-          <form method="POST" className="my-6 w-full" onSubmit={onFormSubmit}>
+          <form method="POST" className="my-2 w-full" onSubmit={onFormSubmit}>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mx-auto">
-              <HtmlFormInput legend={"Nombre"} type={"text"} colSize={1} id={"txtNombreProducto"} additionalClass={"fc-product"} />
-              <HtmlFormSelect colSize={1} legend={"Categoría"} id={"txtSelectCategoria"} options={catalogoCategoria} additionalClass={"fc-product"} />
+              <HtmlFormInput legend={"Nombre"} type={"text"} colSize={1} value={formData.nombre} name={"nombre"} additionalClass={"fc-product"} onChange={handleChange} />
+              <HtmlFormSelect colSize={1} legend={"Categoría"} value={formData.categoria} name={"categoria"} options={catalogoCategoria} additionalClass={"fc-product"} onChange={handleChange} />
             </div>
 
             <div className="mt-2 grid grid-cols-1 md:grid-cols-3 gap-4 mx-auto">
-              <HtmlFormInput legend={"Cant. Disponible"} type={"number"} colSize={1} id={"txtCantDisponible"} additionalClass={"fc-product"} />
-              <HtmlFormInput legend={"Cant. Mínima"} type={"number"} colSize={1} id={"txtCantMinima"} additionalClass={"fc-product"} />
-              <HtmlFormInput legend={"Precio"} type={"number"} colSize={1} id={"txtPrecioProducto"} additionalClass={"fc-product"} />
+              <HtmlFormInput legend={"Cant. Disponible"} type={"number"} colSize={1} value={formData.cantDisponible} name={"cantDisponible"} additionalClass={"fc-product"} onChange={handleChange} />
+              <HtmlFormInput legend={"Cant. Mínima"} type={"number"} colSize={1} value={formData.cantMinima} name={"cantMinima"} additionalClass={"fc-product"} onChange={handleChange} />
+              <HtmlFormInput legend={"Precio"} type={"number"} colSize={1} value={formData.precio} name={"precio"} additionalClass={"fc-product"}  onChange={handleChange}/>
 
             </div>
+            <div className=" grid grid-cols-1 md:grid-cols-3 gap-4 mx-auto">
+              <div className="col-span-1 m-2">
+                <HtmlCheckButton legend="No rebaja inventario" onChange={(e) => setFormData((prev) => ({ ...prev, noRebajaInventario: e.target.checked }))} />
+              </div>
+            </div>
 
-            <div className="grid mt-2 grid-cols-1 md:grid-cols-1 gap-4 mx-auto">
-              <HtmlFormInput legend={"Imagen"} type={"file"} colSize={1} id={"txtImagenProducto"} additionalClass={""} onChange={handleImageUpload} />
+            <div className="grid grid-cols-1 md:grid-cols-1 gap-4 mx-auto">
+              <HtmlFormInput legend={"Imagen"} type={"file"} colSize={1} value={formData.imagen}  onChange={(e) => {handleImageUpload(e),handleChange(e)}} />
               {imagePreview && (
-                <div className="mt-4 flex flex-col items-center">
-                  <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">Vista Previa de la Imagen:</h3>
+                <div className="flex flex-col items-center">
+                  <h3 className="text-sm font-medium text-gray-900 dark:text-gray-100 mb-2">Vista Previa:</h3>
 
-                  <Image src={imagePreview} alt="Preview" className="max-w-xs max-h-20 mx-auto" height={200} width={200} />
+                  <Image src={imagePreview} alt="Preview" className="max-w-xs max-h-20 mx-auto" height={100} width={80} />
                 </div>
               )}
             </div>
 
-            <div className="flex justify-center gap-6 mt-5">
-              <button type="submit" className="bg-blue-500 hover:bg-blue-600 text-white font-semibold rounded-md py-2 px-8">
-                Guardar
-              </button>
-              <button type="button" className="bg-gray-400 font-semibold rounded-md py-2 px-8" onClick={onClose} onClickCapture={limpiarCamposForm} >
-                Cancelar
-              </button>
+            <div className="flex justify-center mt-4">
+              {onLoading ? (
+                <div className="flex items-center justify-center m-1">
+                  <ClipLoader size={30} speedMultiplier={1.5} />
+                </div>
+              ) : (
+                <>
+                  <HtmlButton type="submit" legend={"Registrar"} color={"green"} icon={Plus} />
+                  <HtmlButton type="button" legend={"Cancelar"} color={"gray"} icon={XCircle} onClick={handleClose} />
+                </>
+              )}
             </div>
           </form>
         </div>
       </div>
-      <Toaster richColors />
     </div>
   );
 }

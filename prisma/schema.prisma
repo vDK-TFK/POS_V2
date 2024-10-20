@@ -117,12 +117,15 @@ model ProductoVenta {
   cantidad             Decimal  @db.Decimal(18, 3)
   cantidadMinima       Decimal  @db.Decimal(18, 3)
   precio               Decimal  @db.Decimal(18, 3)
-  idUsuarioCreacion    Int
+  idUsuarioCreacion    Int?
   fechaCreacion        DateTime @default(now())
-  eliminado            Boolean
+  eliminado            Boolean @default(false)
   idCategoriaProdVenta Int
-  imagen               Bytes
-  tipoImagen           String
+  imagen               Bytes?
+  tipoImagen           String?
+  fechaModificacion DateTime?
+  idUsuarioModificacion Int?
+  noRebajaInventario Boolean @default(false)
 
   fk_CategoriaProdVenta CategoriaProdVenta @relation(fields: [idCategoriaProdVenta], references: [idCategoriaProdVenta])
   fk_detallesFactura     DetallesFactura[] 

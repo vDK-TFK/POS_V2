@@ -59,6 +59,7 @@ export async function POST(request) {
         celular: model.celular == "" ? '00000000' : model.celular,
         direccion: model.direccion,
         idUsuarioCreacion: model.idUsuarioCreacion,
+        eliminado:false
       }
     });
 
@@ -107,7 +108,8 @@ export async function PUT(request) {
         celular: model.celular == "" ? '00000000' : model.celular,
         direccion: model.direccion,
         idUsuarioModificacion: model.idUsuarioModificacion,
-        fechaModificacion: new Date()
+        fechaModificacion: new Date(),
+        eliminado:false
       },
       where:{
         idCliente:model.idCliente,

@@ -16,6 +16,7 @@ import PrintTicket from "@/app/components/pos/printTicket";
 import { Calendar, CalendarCheck, CoinsIcon, Computer, HandPlatter, Trash, User } from "lucide-react";
 import { getSession, useSession } from "next-auth/react";
 import { useEffect, useState, useCallback } from "react";
+import { ClipLoader } from "react-spinners";
 import { Toaster, toast } from 'sonner';
 
 export default function App() {
@@ -44,8 +45,16 @@ export default function App() {
   const [cajaActual, onSet_CajaActual] = useState([]);
   const [modalInfoEmpresa, onModal_InfoEmpresa] = useState(false);
 
+  //Loadings
+  const [loadingProdVenta, onSet_loadingProdVenta] = useState(false);
+  const [loadingCategorias, onSet_loadingCategorias] = useState(false);
+  const [loadingClientes, onSet_loadingClientes] = useState(false);
+
+
   //Sesion
   const { data: session } = useSession();
+
+
 
   //Debe ir validando de forma cronológica (Empresa, Caja, Productos...)
 
@@ -57,9 +66,8 @@ export default function App() {
 
       if (result.status === "success") {
         onSet_InfoEmpresa(result.data);
-        onSearch_CategoriasProdVenta();
-        //onSearch_ProductosVenta();
         onGet_CajaActual();
+        onInit_Component();
       } 
       else if (result.code === 204) {
         onModal_InfoEmpresa(true);
@@ -79,12 +87,18 @@ export default function App() {
   }, [onSearch_InfoEmpresa]);
   //#endregion
 
+  const onInit_Component = function(){
+    onSearch_CategoriasProdVenta();
+    onSearch_ProductosVenta();
+    
 
+  };
 
   //#region [PRODUCTOS VENTA]
   const catalogo = [];
 
   const onSearch_CategoriasProdVenta = async () => {
+    onSet_loadingCategorias(true);
     try {
       const response = await fetch(`/api/categoriasprodventa`);
       if (!response.ok) {
@@ -104,9 +118,13 @@ export default function App() {
     } catch (error) {
       console.error('Error:', error);
     }
+    finally{
+      onSet_loadingCategorias(false);
+    }
   };
 
   const onSearch_ProductosVenta = async () => {
+    onSet_loadingProdVenta(true);
     try {
       const response = await fetch(`/api/productosventa`);
       if (!response.ok) {
@@ -123,7 +141,7 @@ export default function App() {
       console.error('Error:', error);
       toast.error('Sucedió un error al obtener los productos');
     } finally {
-      setLoading(false);
+      onSet_loadingProdVenta(false)
     }
   };
 
@@ -173,6 +191,7 @@ export default function App() {
   
   //#region [CLIENTES]
   const onSearch_Cliente = async (value) => {
+    onSet_loadingClientes(true);
     try {
       const response = await fetch(`/api/clientes/buscar/${value}`);
       if (!response.ok) {
@@ -183,7 +202,8 @@ export default function App() {
         AddRemoveClassById("txtSelCliente", "", "is-valid");
         AddRemoveClassById("txtSelCliente", "", "is-invalid");
         onModal_AgregarClientePos(true);
-      } else {
+      } 
+      else {
         if (data.length === 1) {
           toast.success('Se ha encontrado el cliente');
           setNombreCliente(data[0].nombreCompleto);
@@ -200,6 +220,9 @@ export default function App() {
     } catch (error) {
       console.error('Error:', error);
       toast.error('Sucedió un error al obtener los clientes');
+    }
+    finally{
+      onSet_loadingClientes(false);
     }
   };
 
@@ -326,9 +349,6 @@ export default function App() {
 
   //#region [ON_INIT]
   useEffect(() => {
-
-
-
     const tabTodas = document.getElementById("tab_");
     if (tabTodas) {
       tabTodas.classList.add("tab-active");
@@ -349,71 +369,117 @@ export default function App() {
             </ol>
           </nav>
         </div>
-        <div className="pl-4 grid grid-cols-1 md:grid-cols-12 gap-4 mx-auto">
-          <div className="md:col-span-2">
-            <div className="mt-1">
-              {
-                existeCajaAbierta ? (
-                  <HtmlButton color={"indigo"} legend={"Productos"} icon={HandPlatter} onClick={() => openModalAgregar(true)} />
-                ) : null
-              }
-            </div>
-          </div>
+        <div className="w-full pl-4 pr-4">
+          <div className="block w-full p-2 bg-white border border-gray-200 rounded-lg shadow">
 
-        </div>
+
+              <div className="grid grid-cols-2 md:grid-cols-1 gap-4 mx-auto">
+                {
+                  existeCajaAbierta ? (
+                    <>
+                      <HtmlButton colSize={1} color={"indigo"} legend={"Agregar Producto"} icon={HandPlatter} onClick={() => openModalAgregar(true)} />
+                    </>
+                  ) : null
+                }
+              </div>
+            
+            
         <div className="flex flex-col w-full h-full overflow-y-auto">
           {
             existeCajaAbierta ? (
               <div className="p-2">
 
-
                 <div className="border-b border-gray-200 dark:border-gray-700">
                   <ul className="flex flex-wrap -mb-px text-sm font-medium text-center text-gray-500 dark:text-gray-400">
 
-                    {categorias.map((item, index) => (
-                      <li className="me-2" key={index}>
-                        <a href="#" id={`tab_${item.idCategoriaProdVenta}`} onClick={() => onSet_TabActivo(item.idCategoriaProdVenta)} className="tab-categorias inline-block p-4 hover:text-blue-600 rounded-t-lg dark:hover:text-blue-600 ">
-                          {item.nombre}
-                        </a>
-                      </li>
-                    ))}
+                  {
+                    loadingCategorias ? (
+                      <div className="flex items-center justify-center m-4">
+                        <ClipLoader size={30} speedMultiplier={1.5} />
+                      </div>
+                    ) : (
+                      categorias.map((item, index) => (
+                        <li className="me-3" key={index}>
+                          <a
+                            href="#"
+                            id={`tab_${item.idCategoriaProdVenta}`}
+                            onClick={() => onSet_TabActivo(item.idCategoriaProdVenta)}
+                            className="tab-categorias inline-block p-4 hover:text-blue-600 rounded-t-lg dark:hover:text-blue-600"
+                          >
+                            {item.nombre}
+                          </a>
+                        </li>
+                      ))
+                    )
+                  }
+
+                    
 
                   </ul>
                 </div>
+                
+                {
+                  loadingProdVenta ? (
+                        <div className="flex items-center justify-center m-4">
+                          <ClipLoader size={30} speedMultiplier={1.5} />
+                        </div>
+                  ) : (
+                    <div style={{ maxHeight: '30rem', overflowY: 'auto' }} className="mt-4 grid grid-cols-2 items-stretch sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                      {productos.map((item, index) => {
+                        var bufferImagen;
+                        var imgBase64;
+                        var imgSrc;
 
-                <div style={{ maxHeight: '30rem', overflowY: 'auto' }} className="mt-4 grid grid-cols-2 items-stretch sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                    {productos.map((item, index) => {
-                      const bufferImagen = Buffer.from(item.imagen.data);
-                      const imgBase64 = bufferImagen.toString('base64');
+                        if (item.imagen && item.tipoImagen) {
+                          bufferImagen = Buffer.from(item.imagen.data);
+                          imgBase64 = bufferImagen.toString('base64');
+                          imgSrc = `data:${item.tipoImagen};base64,${imgBase64}`;
+                        }
+                        else {
+                          imgSrc = "/petote.png"
+                        }
 
-                      const imgSrc = `data:${item.tipoImagen};base64,${imgBase64}`;
-                      const modelForCard = {
-                        productoVentaId: item.idProductoVenta,
-                        nombre: item.nombre,
-                        precio: item.precio,
-                        cantDisponible: item.cantidad,
-                        cantMinima: item.cantidadMinima,
-                        imagen: imgSrc,
-                        idCategoriaProdVenta: item.idCategoriaProdVenta
-                      };
+                        const modelForCard = {
+                          productoVentaId: item.idProductoVenta,
+                          nombre: item.nombre,
+                          precio: item.precio,
+                          cantDisponible: item.cantidad,
+                          cantMinima: item.cantidadMinima,
+                          imagen: imgSrc,
+                          idCategoriaProdVenta: item.idCategoriaProdVenta
+                        };
 
-                      return (
-                        <CartaComida 
-                          key={item.idProductoVenta} // Asegúrate de usar una propiedad única
-                          producto={modelForCard} 
-                          reloadTable={onSearch_ProductosVenta} 
-                          agregarProductoTabla={onAdd_LineaDetalle} 
-                        />
-                      );
-                    })}
-                  </div>
+                        return (
+                          <CartaComida
+                            key={item.idProductoVenta} // Asegúrate de usar una propiedad única
+                            producto={modelForCard}
+                            reloadTable={onSearch_ProductosVenta}
+                            agregarProductoTabla={onAdd_LineaDetalle}
+                          />
+                        );
+                      })}
+                    </div>
+                  )
+                }
+
 
               </div>
-            ) : null
+            ) :
+            null
+
           }
 
         </div>
+
+
+          
+
+          </div>
+        </div>
+
+
       </div>
+      {/* Card Factura */}
       {
         existeCajaAbierta ? (
           <aside style={{ overflow: 'auto', width: '35%', height: '100vh' }} className=" overflow-y-auto">
@@ -435,7 +501,16 @@ export default function App() {
                 {/* Legends info */}
 
                 {/* Client Filter */}
-                <HtmlFormInput additionalClass={"text-xs"} tooltip={"Ingresa un valor y presiona enter para buscar"} value={nombreCliente} id={"txtSelCliente"} legend={"Nombre del cliente"} onChange={(e) => setNombreCliente(e.target.value)} onKeyUp={onSelect_Enter} />
+                {
+                  loadingClientes ? (
+                    <div className="flex items-center justify-center m-4">
+                        <ClipLoader size={30} speedMultiplier={1.5} />
+                    </div>
+                  ) : 
+                  (
+                    <HtmlFormInput additionalClass={"text-xs"} tooltip={"Ingresa un valor y presiona enter para buscar"} value={nombreCliente} id={"txtSelCliente"} legend={"Nombre del cliente"} onChange={(e) => setNombreCliente(e.target.value)} onKeyUp={onSelect_Enter} />
+                  )
+                }
 
                 {/* Details */}
                 <div className="">
@@ -540,7 +615,7 @@ export default function App() {
 
 
           </aside>
-        ) : null
+        ) : <ClipLoader size={30} speedMultiplier={1.5} />
       }
 
       <AgregarProductoVenta open={modalAgregar} onClose={() => openModalAgregar(false)} setOptions={catalogoCategoria} reloadProducts={onSearch_ProductosVenta} infoEmpresa={infoEmpresa}  />

@@ -113,12 +113,15 @@ CREATE TABLE `ProductoVenta` (
     `cantidad` DECIMAL(18, 3) NOT NULL,
     `cantidadMinima` DECIMAL(18, 3) NOT NULL,
     `precio` DECIMAL(18, 3) NOT NULL,
-    `idUsuarioCreacion` INTEGER NOT NULL,
+    `idUsuarioCreacion` INTEGER NULL,
     `fechaCreacion` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
-    `eliminado` BOOLEAN NOT NULL,
+    `eliminado` BOOLEAN NOT NULL DEFAULT false,
     `idCategoriaProdVenta` INTEGER NOT NULL,
-    `imagen` LONGBLOB NOT NULL,
-    `tipoImagen` VARCHAR(191) NOT NULL,
+    `imagen` LONGBLOB NULL,
+    `tipoImagen` VARCHAR(191) NULL,
+    `fechaModificacion` DATETIME(3) NULL,
+    `idUsuarioModificacion` INTEGER NULL,
+    `noRebajaInventario` BOOLEAN NOT NULL DEFAULT false,
 
     PRIMARY KEY (`idProductoVenta`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
@@ -276,11 +279,14 @@ CREATE TABLE `DetallesFactura` (
 -- CreateTable
 CREATE TABLE `InfoCaja` (
     `idInfoCaja` INTEGER NOT NULL AUTO_INCREMENT,
-    `fechaApertura` DATETIME(3) NOT NULL,
+    `fechaApertura` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     `fechaCierre` DATETIME(3) NULL,
-    `idUsuario` INTEGER NOT NULL,
-    `fechaConsultaCaja` DATETIME(3) NOT NULL,
-    `montoInicioCaja` DECIMAL(18, 5) NOT NULL,
+    `idUsuarioCreacion` INTEGER NULL,
+    `fechaCreacion` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    `idUsuarioModificacion` INTEGER NULL,
+    `fechaModificacion` DATETIME(3) NULL,
+    `fechaConsultaCaja` DATETIME(3) NULL,
+    `montoInicioCaja` DECIMAL(18, 5) NULL,
     `montoCierreCaja` DECIMAL(18, 5) NULL,
 
     PRIMARY KEY (`idInfoCaja`)
@@ -310,9 +316,9 @@ CREATE TABLE `Movimientos` (
     `idUsuarioCreacion` INTEGER NULL,
     `fechaCreacion` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     `idUsuarioModificacion` INTEGER NULL,
-    `fechaModificacion` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
-    `motivo` VARCHAR(191) NOT NULL,
+    `fechaModificacion` DATETIME(3) NULL,
     `idInfoCaja` INTEGER NOT NULL,
+    `motivo` VARCHAR(191) NOT NULL,
     `monto` DECIMAL(18, 5) NOT NULL,
 
     PRIMARY KEY (`idMovimiento`)

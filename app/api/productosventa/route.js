@@ -5,22 +5,54 @@ import { FindById } from '../utils/db-methods';
 
 const prisma = new PrismaClient()
 
+//Agregar Producto de Venta
 export async function POST(request) {
-  const data = await request.json();
-  const nuevoProdVenta = await db.productoVenta.create({
-    data: {
-      nombre: data.nombre,
-      cantidad: data.cantidad,
-      cantidadMinima: data.cantidadMinima, 
-      precio: data.precio,
-      idUsuarioCreacion: 1,
-      eliminado: false,
-      idCategoriaProdVenta: data.idCategoriaProdVenta,
-      imagen: data.imagen ? data.imagen : null,
-      tipoImagen: data.tipoImagen ? data.tipoImagen : null
-    },
-  });
-  return NextResponse.json(nuevoProdVenta);
+
+  try {
+    const model = await request.json();
+
+    const nuevoProdVenta = await prisma.productoVenta.create({
+      data: {
+        nombre: model.nombre,
+        cantidad: model.cantidad,
+        cantidadMinima: model.cantidadMinima,
+        precio: model.precio,
+        idUsuarioCreacion: model.idUsuarioCreacion,
+        eliminado: false,
+        idCategoriaProdVenta: model.idCategoriaProdVenta,
+        noRebajaInventario: model.noRebajaInventario,
+        imagen: model.imagen ? model.imagen : null,
+        tipoImagen: model.tipoImagen ? model.tipoImagen : null
+
+      },
+    });
+
+    // Verificar si se creó el usuario
+    if (!nuevoProdVenta) {
+      return NextResponse.json({
+        code: 400,
+        status: "error",
+        message: "Error al registrar el producto"
+      });
+    }
+
+    return NextResponse.json({
+      code: 200,
+      status: "success",
+      data: true,
+      message: "Producto registrado satisfactoriamente"
+    });
+
+  }
+  catch (error) {
+    console.error('Error al registrar el producto:', error);
+    return NextResponse.json({
+      code: 500,
+      status: "error",
+      message: "Error al registrar el producto: " + error.message
+    });
+  }
+
 }
 
 
