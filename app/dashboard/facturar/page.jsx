@@ -16,10 +16,12 @@ import EditarProductoVenta from "@/app/components/pos/editarProdVenta";
 import EliminarProdVenta from "@/app/components/pos/eliminarProdVenta";
 import ModalRegistrarPago from "@/app/components/pos/modalPago";
 import PrintTicket from "@/app/components/pos/printTicket";
+import TicketFactura from "@/app/components/pos/ticket";
 import { Calendar, CalendarCheck, CoinsIcon, Computer, HandPlatter, Trash, User } from "lucide-react";
 import { getSession, useSession } from "next-auth/react";
 import { useEffect, useState, useCallback, useRef } from "react";
 import { ClipLoader } from "react-spinners";
+import { useReactToPrint } from "react-to-print";
 import { toast } from 'sonner';
 
 export default function App() {
@@ -52,6 +54,9 @@ export default function App() {
   const [modalEditar, openModalEditar] = useState(false);
   const [modalEliminar, openModalEliminar] = useState(false);
   const [productoRetornar,onReturn_Producto] = useState(0);
+  const ticketRef = useRef();
+  const [itemToPrint, onSet_ItemToPrint] = useState(null);
+
 
 
   //Loadings
@@ -180,10 +185,12 @@ export default function App() {
         onSet_loadingGeneral(false)
       }
       else if(result.code == 204){
-        toast.warning(result.data)
+        toast.warning(result.message)
+        setListadoProductos([]);
       }
       else{
-        toast.error(result.data)
+        toast.error(result.message);
+        setListadoProductos([]);
       }
     } 
     catch (error) {
@@ -192,6 +199,7 @@ export default function App() {
     } 
     finally {
       onSet_loadingProdVenta(false)
+      onSet_loadingGeneral(false)
     }
   };
 
@@ -270,16 +278,17 @@ export default function App() {
   //#region [DETALLES FACTURA]
   const onAdd_LineaDetalle = (obj) => {
     
-      document.getElementById("txtSelCliente").classList.remove("is-invalid");
+     //document.getElementById("txtSelCliente").classList.remove("is-invalid");
 
       const newRow = {
         id: rows.length + 1,
         cantidad: 1,
         detalles: obj.nombre,
-        precio: obj.precio,
-        idProductoVenta: obj.productoVentaId,
-        cantMinima: obj.cantMinima,
-        cantProducto: obj.cantDisponible
+        precio: Number(obj.precio),
+        idProductoVenta: Number(obj.productoVentaId),
+        cantMinima: Number(obj.cantMinima),
+        cantProducto: Number(obj.cantDisponible),
+        noRebajaInventario: obj.noRebajaInventario
       };
 
       setRows([...rows, newRow]);
@@ -312,6 +321,27 @@ export default function App() {
   const onCreate_ModelFactura = () => {
     var r = modelReceptor;
     var c = infoEmpresa;
+    var client;
+
+    if(r == null){
+      client = {
+        IdCliente:null,
+        Nombre: "Cliente General",
+        Telefono: "0000-0000",
+        Celular: "0000-0000",
+        Direccion :"No tiene"
+      }
+    }
+    else{
+      client = {
+        IdCliente: r.idCliente,
+        Nombre: r.nombreCompleto,
+        Telefono: r.telefono !== "" ? r.telefono : "0000-0000",
+        Celular: r.celular !== "" ? r.celular : "0000-0000",
+        Direccion: r.direccion
+      }
+    }
+    
 
     var objetoFactura = {
       FechaEmision: new Date(),
@@ -322,20 +352,9 @@ export default function App() {
         Telefono: c.telefono,
         Celular: c.celular,
         Correo: c.correo,
-        Direccion: {
-          DireccionExacta: c.direccion
-        }
+        DireccionExacta: c.direccion
       },
-      Receptor: {
-        ClienteId: r.clienteId,
-        Nombre: FormatName(r.nombre, r.apellido),
-        Email: r.email,
-        Telefono: r.telefono !== "" ? r.telefono : "0000-0000",
-        Celular: r.celular !== "" ? r.celular : "0000-0000",
-        Direccion: {
-          DireccionExacta: r.direccion
-        }
-      }
+      Receptor: client
     };
 
     var listaDetalles = rows.map(row => ({
@@ -343,19 +362,20 @@ export default function App() {
       Cantidad: row.cantidad,
       Descripcion: row.detalles,
       Precio: row.precio,
-      IdProductoVenta: row.idProductoVenta
+      IdProductoVenta: row.idProductoVenta,
+      NoRebajaInventario: row.noRebajaInventario
     }));
 
     objetoFactura.Detalles = listaDetalles;
     objetoFactura.Observaciones = "";
     objetoFactura.Total = total;
-    objetoFactura.idInfoCaja = cajaActual.idInfoCaja;
+    objetoFactura.NumeroCaja = cajaActual.idInfoCaja;
+    objetoFactura.IdUsuarioCreacion = Number(session?.user.id)
 
     setModelFactura(objetoFactura);
   };
 
   const onClear_Factura = (json) => {
-    console.log(json);
     onSearch_ProductosVenta();
     setRows([]);
     setTotal(0);
@@ -363,9 +383,32 @@ export default function App() {
     setModelReceptor(null);
     AddRemoveClassById("txtSelCliente", "", "is-valid");
     AddRemoveClassById("txtSelCliente", "", "is-invalid");
-    onSet_ObjectImpresion(json);
-    onModal_Print(true);
+    onSet_ItemToPrint(json);
+    if (infoEmpresa.logo && infoEmpresa.tipoImagen){
+      const bufferImagen = Buffer.from(infoEmpresa.logo);
+      const imgBase64 = bufferImagen.toString('base64');
+      const imgSrc = `data:${infoEmpresa.tipoImagen};base64,${imgBase64}`;
+      json.LogoSource = imgSrc;
+    }
+    else{
+      json.LogoSource = "/petote.png";
+    }
+
+
+    handlePrintClick(json);
   };
+
+  const handlePrintClick = (item) => {
+    onSet_ItemToPrint(item);
+    setTimeout(() => {
+      handlePrint();
+    }, 0);
+  };
+
+  const handlePrint = useReactToPrint({
+    content: () => ticketRef.current,
+    documentTitle: "Factura",
+  });
   //#endregion
 
   //#region [ON_INIT]
@@ -577,6 +620,7 @@ export default function App() {
                                   <th hidden className="px-6 py-3 text-left text-sm font-medium text-black uppercase dark:bg-gray-700 dark:text-white">IdProducto</th>
                                   <th hidden className="px-6 py-3 text-left text-sm font-medium text-black uppercase dark:bg-gray-700 dark:text-white">CantMinima</th>
                                   <th hidden className="px-6 py-3 text-left text-sm font-medium text-black uppercase dark:bg-gray-700 dark:text-white">CantDisponible</th>
+                                  <th hidden className="px-6 py-3 text-left text-sm font-medium text-black uppercase dark:bg-gray-700 dark:text-white">NoRebajaInventario</th>
 
                                 </tr>
                               </thead>
@@ -584,12 +628,7 @@ export default function App() {
                                 {rows.map((row) => (
                                   <tr key={row.id}>
                                     <td className="px-2 py-4 whitespace-nowrap">
-                                      <input
-                                        type="number"
-                                        value={row.cantidad}
-                                        max={row.cantProducto}
-                                        onChange={(e) => onChange_CantPrecio(e, row.id, 'cantidad')}
-                                        className="dark:bg-gray-900 dark:text-white border border-gray-300 text-gray-900 text-xs rounded-md focus:ring-blue-500 focus:border-blue-500 block w-14 p-1"
+                                      <input type="number" value={row.cantidad} max={row.cantProducto} onChange={(e) => onChange_CantPrecio(e, row.id, 'cantidad')} className="dark:bg-gray-900 dark:text-white border border-gray-300 text-gray-900 text-xs rounded-md focus:ring-blue-500 focus:border-blue-500 block w-14 p-1"
                                       />
                                     </td>
                                     <td className="py-4 whitespace-nowrap">
@@ -670,11 +709,18 @@ export default function App() {
       <MultipleSelectCliente open={modalMultipleClientes} onClose={() => onModal_MultiplesClientes(false)} listaClientes={listaMultiplesClientes} handleClienteInput={onChange_Cliente} />
       <ModalRegistrarPago open={modalRegistrarPago} onClose={() => onModal_RegistrarPago(false)} objFactura={modelFactura} onReload={onClear_Factura} />
       <AgregarCLientePos open={modalAgregarClientePos} onClose={() => onModal_AgregarClientePos(false)} />
-      <PrintTicket open={modalPrint} onClose={() => { onModal_Print(false) }} json={objectImpresion} />
+      {/* <PrintTicket open={modalPrint} onClose={() => { onModal_Print(false) }} json={objectImpresion} /> */}
       <IniciarCaja open={modalIniciarCaja} onClose={() => { onModal_IniciarCaja(false) }} />
       <IngresarInfoEmpresa open={modalInfoEmpresa} onClose={() => { onModal_InfoEmpresa(false) }} />
       <EditarProductoVenta categorias={catalogoCategoria} onClose={() => openModalEditar(false)} open={modalEditar} reloadProducts={onSearch_ProductosVenta} productoVenta={productoEditar}/> 
       <EliminarProdVenta productoVenta={productoEliminar} open={modalEliminar} onClose={() => openModalEliminar(false)} reloadTable={onSearch_ProductosVenta} />
+      
+      {itemToPrint && (
+        <div style={{ display: "none" }}>
+          <TicketFactura ref={ticketRef} item={itemToPrint} />
+        </div>
+      )}
+    
     </div>
 
   );

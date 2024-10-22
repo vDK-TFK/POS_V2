@@ -16,7 +16,7 @@ import { useSession } from "next-auth/react";
 export default function ListaMovimientos({ open, onClose, cajaActual, idInfoCaja, }) {
   const options = [
     { value: 1, label: "Entrada" },
-    { value: 2, label: "Salida" },
+    { value: 2, label: "Salida" }, 
   ];
   const [listaMovimientos, onSet_ListaMovimientos] = useState([]);
   const [onLoading, onSet_onLoading] = useState(false);

@@ -49,7 +49,7 @@ export default function AgregarCliente({ open, onClose, onGet_ListaClientes }) {
     onClose()
   };
 
-  // Guardar usuario
+  // Guardar cliente
   const onSave_Cliente = (e) => {
     e.preventDefault();
 

@@ -91,7 +91,6 @@ model AuditoriaLogin {
 model Clientes {
   idCliente         Int      @id @default(autoincrement())
   nombreCompleto    String
-  correo             String?
   telefono          String?
   celular           String?
   direccion         String?
@@ -100,8 +99,6 @@ model Clientes {
   idUsuarioCreacion Int?
   fechaModificacion DateTime?
   idUsuarioModificacion Int?
-
-  facturas  Facturas[]
 }
 
 model CategoriaProdVenta {
@@ -246,23 +243,26 @@ model MedioPago {
 }
 
 model Facturas {
-  idFactura     Int              @id @default(autoincrement())
-  idCliente     Int
-  fechaEmision  DateTime
-  documentoJson Json
-  observaciones String
+  idFactura     Int @id @default(autoincrement())
+  idCliente     Int?
+  nombreCliente String?
+  documentoJson Json?
+  observaciones String?
+  medioPago String
   idMedioPago   Int
   total         Decimal @db.Decimal(18, 5)
   pagadoCon Decimal @db.Decimal(18, 5)
   vuelto Decimal @db.Decimal(18, 5)
   idInfoCaja Int
+  idUsuarioCreacion Int?
+  fechaEmision  DateTime @default(now())
+  idUsuarioModificacion Int?
+  fechaModificacion  DateTime?
 
-  cliente   Clientes   @relation(fields: [idCliente], references: [idCliente])
+
   detalles  DetallesFactura[]
   infoCafa InfoCaja @relation(fields: [idInfoCaja], references: [idInfoCaja])
   estadoFac EstadoFac
-
-  @@index([idCliente], name: "idx_idCliente")
 }
 
 model DetallesFactura {
@@ -272,6 +272,7 @@ model DetallesFactura {
   descripcion      String
   precio           Decimal @db.Decimal(18, 5)
   idProductoVenta  Int
+  noRebajaInventario Boolean
 
   fk_factura Facturas @relation(fields: [idFactura], references: [idFactura])
   fk_productoVenta  ProductoVenta  @relation(fields: [idProductoVenta], references: [idProductoVenta])

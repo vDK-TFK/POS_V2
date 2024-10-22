@@ -8,6 +8,7 @@ import { ArrowLeftCircle, Check } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { Toaster, toast } from 'sonner';
 import Image from "next/image";
+import { ClipLoader } from "react-spinners";
 
 const itemsBreadCrumb = ["Home", "Info Empresa"];
 
@@ -18,9 +19,6 @@ export default function InfoEmpresa() {
    const [actualizaImagen, onSet_ActualizarImagen] = useState(false);
    const [esActualizar, onSet_EsActualizar] = useState(false);
    const onReady = useRef(false);
-
-
-
 
    //#region [OBTENER INFO]
    const [empresa, onSet_Empresa] = useState({
@@ -36,20 +34,24 @@ export default function InfoEmpresa() {
    const onGet_InfoEmpresa = async () => {
       try {
          const response = await fetch(`/api/empresa`);
-         if (!response.ok) {
-            throw new Error(`Error al obtener la información de la empresa: ${response.statusText}`);
-         }
          const result = await response.json();
 
          if (result.status == "success") {
             toast.success('Se ha obtenido la información');
             onSet_Empresa(result.data);
-            const bufferImagen = Buffer.from(result.data.logo);
-            const imgBase64 = bufferImagen.toString('base64');
-            const imgSrc = `data:${result.data.tipoImagen};base64,${imgBase64}`;
 
-            setImagePreview(imgSrc);
-            onSet_EsActualizar(true);
+            if(result.data.logo){
+               const bufferImagen = Buffer.from(result.data.logo);
+               const imgBase64 = bufferImagen.toString('base64');
+               const imgSrc = `data:${result.data.tipoImagen};base64,${imgBase64}`;
+
+               setImagePreview(imgSrc);
+            }
+
+            if(result.data){
+               onSet_EsActualizar(true);
+
+            }
          }
          else if (result.code == 204) {
             toast.warning('No se encontró la información de la empresa debe agregarla');
@@ -147,8 +149,7 @@ export default function InfoEmpresa() {
          });
 
          const result = await response.json();
-         console.log("Response: " + response + "  ---- " + "Result: " + result);
-
+         
          if (result.status == "success") {
             toast.success('Información actualizada satisfactoriamente');
          }
@@ -161,7 +162,7 @@ export default function InfoEmpresa() {
       }
       catch (error) {
          toast.error("Sucedió un error al actualizar la información", error);
-         console.error(error);
+         console.error("Sucedió un error al actualizar la información",error);
       }
 
    }
@@ -261,10 +262,8 @@ export default function InfoEmpresa() {
 
    if (loading) {
       return (
-         <div className="w-full h-screen flex items-center justify-center">
-            <div className="spinner-border animate-spin inline-block w-8 h-8 border-4 border-t-transparent border-blue-500 rounded-full" role="status">
-               <span className="visually-hidden"></span>
-            </div>
+         <div className="flex items-center justify-center mt-20">
+            <ClipLoader size={30} speedMultiplier={1.5} />
          </div>
       );
    }

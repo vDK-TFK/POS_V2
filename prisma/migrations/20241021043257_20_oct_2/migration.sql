@@ -84,7 +84,6 @@ CREATE TABLE `AuditoriaLogin` (
 CREATE TABLE `Clientes` (
     `idCliente` INTEGER NOT NULL AUTO_INCREMENT,
     `nombreCompleto` VARCHAR(191) NOT NULL,
-    `correo` VARCHAR(191) NULL,
     `telefono` VARCHAR(191) NULL,
     `celular` VARCHAR(191) NULL,
     `direccion` VARCHAR(191) NULL,
@@ -271,6 +270,7 @@ CREATE TABLE `DetallesFactura` (
     `descripcion` VARCHAR(191) NOT NULL,
     `precio` DECIMAL(18, 5) NOT NULL,
     `idProductoVenta` INTEGER NOT NULL,
+    `noRebajaInventario` BOOLEAN NOT NULL,
 
     INDEX `idx_idFactura`(`idFactura`),
     PRIMARY KEY (`idDetalleFactura`)

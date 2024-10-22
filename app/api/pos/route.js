@@ -40,8 +40,14 @@ export async function POST(request) {
       total: parseFloat(d.Total),
       pagadoCon: parseFloat(d.Pago.PagaCon),
       vuelto: parseFloat(d.Pago.Vuelto),
-      idInfoCaja:d.idInfoCaja,
-      estadoFac: estadoFac, 
+      idInfoCaja: d.NumeroCaja,
+      estadoFac: estadoFac,
+      cliente: {
+        connect: { id: r.ClienteId },
+      },
+      infoCaja: {
+        connect: { id: d.NumeroCaja },
+      },
     };
 
     const detallesData = d.Detalles.map(item => ({

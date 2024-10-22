@@ -61,7 +61,7 @@ export async function GET() {
       return NextResponse.json({
         code: 204,
         status: "failed",
-        message: "No se encontraron registros.",
+        message: "No se encontraron productos. Puede crear uno nuevo",
       });
     }
 
