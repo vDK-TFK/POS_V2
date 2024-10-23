@@ -709,7 +709,6 @@ export default function App() {
       <MultipleSelectCliente open={modalMultipleClientes} onClose={() => onModal_MultiplesClientes(false)} listaClientes={listaMultiplesClientes} handleClienteInput={onChange_Cliente} />
       <ModalRegistrarPago open={modalRegistrarPago} onClose={() => onModal_RegistrarPago(false)} objFactura={modelFactura} onReload={onClear_Factura} />
       <AgregarCLientePos open={modalAgregarClientePos} onClose={() => onModal_AgregarClientePos(false)} />
-      {/* <PrintTicket open={modalPrint} onClose={() => { onModal_Print(false) }} json={objectImpresion} /> */}
       <IniciarCaja open={modalIniciarCaja} onClose={() => { onModal_IniciarCaja(false) }} />
       <IngresarInfoEmpresa open={modalInfoEmpresa} onClose={() => { onModal_InfoEmpresa(false) }} />
       <EditarProductoVenta categorias={catalogoCategoria} onClose={() => openModalEditar(false)} open={modalEditar} reloadProducts={onSearch_ProductosVenta} productoVenta={productoEditar}/> 
