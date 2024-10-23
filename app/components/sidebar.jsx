@@ -39,7 +39,7 @@ export default function Sidebar() {
     'Info. Caja': <icon.Computer size={20} />,
     'Facturar': <icon.CircleDollarSign size={20} />,
     'Facturas': <icon.ScrollText size={20} />,
-    'Inventario': <icon.Warehouse size={20} />,
+    'Adm. Inventario': <icon.Warehouse size={20} />,
     'Proveedores': <icon.Truck size={20} />,
     'Categorías': <icon.BadgeCent size={20} />,
     'Reportes': <icon.FileLineChart size={20} />,

@@ -46,7 +46,8 @@ const authOptions = {
                         url: true,
                         icono: true,
                         jerarquia: true,
-                        opcEmpleado:true
+                        opcEmpleado:true,
+                        ocultar:true
                       },
                     },
                   },
@@ -106,15 +107,17 @@ const authOptions = {
         await actualizarIntentosUsuario(userFound, true);
 
         // Retornar usuario con permisos
-        var arrayPermisos = userFound.Rol.Permisos.map((p) => ({
-          idPermiso: p.permiso.idPermiso,
-          idPermisoPadre: p.permiso.idPermisoPadre,
-          nombre: p.permiso.nombre,
-          url: p.permiso.url,
-          icono: p.permiso.icono,
-          jerarquia: p.permiso.jerarquia,
-          opcEmpleado:p.permiso.opcEmpleado
-        }));
+        var arrayPermisos = userFound.Rol.Permisos
+          .filter(p => !p.permiso.ocultar) // Filtra los permisos donde `ocultar` es `false`
+          .map((p) => ({
+            idPermiso: p.permiso.idPermiso,
+            idPermisoPadre: p.permiso.idPermisoPadre,
+            nombre: p.permiso.nombre,
+            url: p.permiso.url,
+            icono: p.permiso.icono,
+            jerarquia: p.permiso.jerarquia,
+            opcEmpleado: p.permiso.opcEmpleado,
+          }));
 
         if(!userFound.esEmpleado){
           arrayPermisos = arrayPermisos.filter((p) => !p.opcEmpleado);
