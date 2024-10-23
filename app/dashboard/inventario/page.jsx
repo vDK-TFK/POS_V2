@@ -2,6 +2,8 @@
 
 import { useEffect, useState, useRef } from 'react';
 import * as XLSX from 'xlsx';
+import HtmlTableButton from "@/app/components/HtmlHelpers/TableButton";
+import HtmlNewLabel from "@/app/components/HtmlHelpers/Label1";
 import Agregar from "@/app/components/inventario/crearProducto";
 import Eliminar from "../../components/inventario/eliminarProducto";
 import Editar from "../../components/inventario/editar";
@@ -9,10 +11,26 @@ import Ver from "../../components/inventario/ver";
 import FiltroMenu from "../../components/buscador/filtros";
 import Buscador from "../../components/buscador/buscar";
 import Estados from "../../components/inventario/estados";
-import { CirclePlus, FileUp, Pencil, Trash, Eye, ClipboardList, Filter } from "lucide-react";
+import { CirclePlus, FileUp, Pencil, Trash, Eye, ClipboardList, Package, Calendar, Filter, Contact, CheckCircle, User, Tag, IdCard } from "lucide-react";
 import useSWR from 'swr';
 
 const fetcher = (url) => fetch(url).then((res) => res.json());
+
+function getExpirationColor(fechaCaducidad) {
+  if (!fechaCaducidad) return "gray"; // Si no hay fecha de caducidad, usa gris.
+
+  const hoy = new Date();
+  const fecha = new Date(fechaCaducidad);
+  const diferenciaDias = Math.floor((fecha - hoy) / (1000 * 60 * 60 * 24));
+
+  if (diferenciaDias > 10) {
+    return "green"; // Más de 10 días
+  } else if (diferenciaDias >= 0 && diferenciaDias <= 10) {
+    return "yellow"; // Menos de 10 días
+  } else {
+    return "red"; // Fecha pasada
+  }
+}
 
 export default function Inventario() {
   const [open, setOpen] = useState(false);
@@ -115,30 +133,37 @@ export default function Inventario() {
             </div>
           </div>
           <div className="shadow-lg col-span-10 overflow-x-auto bg-white dark:bg-gray-700 px-5 py-4 rounded-lg">
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-4 gap-4">
               {filteredData.map((producto) => (
-                <div key={producto.ProductoID} className="bg-white dark:bg-gray-800 rounded-lg shadow p-4">
-                  <h2 className="bg-gray-300 dark:bg-gray-900 text-lg font-bold text-gray-900 dark:text-gray-100 px-2 rounded-r-lg rounded-l-lg">{producto.Nombre}</h2>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">ID: {producto.ProductoID}</p>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">Estado: <Estados fechaCaducidad={producto.FechaCaducidad} productoId={producto.ProductoID} mutate={mutate} /></p>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">Proveedor: {producto.ProveedorID}</p>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">Cantidad: {producto.Stock}</p>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">Fecha ingreso: {new Date(producto.FechaIngreso).toLocaleDateString()}</p>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">Fecha de caducidad: {producto.FechaCaducidad ? new Date(producto.FechaCaducidad).toLocaleDateString() : 'N/A'}</p>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">Categoría: {producto.CategoriaID}</p>
-                  <div className="flex gap-2 justify-center mt-4">
-                    <button className="p-1.5 text-gray-900 dark:text-gray-200 bg-blue-600 bg-opacity-50 rounded-md" onClick={() => {
-                      setSelectedProductoId(producto.ProductoID);
-                      setEditar(true);
-                    }}><Pencil size={15} strokeWidth={2.2} /></button>
-                    <button className="p-1.5 text-gray-900 dark:text-gray-200 bg-green-600 bg-opacity-50 rounded-md" onClick={() => {
-                      setSelectedProductoId(producto.ProductoID);
-                      setVer(true);
-                    }}><Eye size={15} strokeWidth={2.2} /></button>
-                    <button className="p-1.5 text-gray-900 dark:text-gray-200 bg-red-600 bg-opacity-50 rounded-md" onClick={() => {
-                      setSelectedProductoId(producto.ProductoID);
-                      setOpen(true);
-                    }}><Trash size={15} strokeWidth={2.2} /></button>
+                <div key={producto.ProductoID} className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-4 transition duration-300 hover:shadow-2xl">
+                  <h2 className="bg-gradient-to-r from-gray-100 to-gray-300 text-center text-lg font-semibold text-gray-800 shadow-md px-5 py-2 rounded-md mb-4 hover:shadow-lg transform hover:scale-105 transition-all duration-300 ease-in-out">
+                    {producto.Nombre}
+                  </h2>
+
+                  <div className="flex flex-col space-y-2">
+                    <HtmlNewLabel color={"blue"} icon={User} legend={`Proveedor: ${producto.ProveedorID}`} />
+                    <HtmlNewLabel color={"blue"} icon={Tag} legend={`Categoría: ${producto.CategoriaID}`} />
+                    <HtmlNewLabel color={"green"} icon={Calendar} legend={`Fecha ingreso: ${new Date(producto.FechaIngreso).toLocaleDateString()}`} />
+                    <HtmlNewLabel
+                      color={getExpirationColor(producto.FechaCaducidad)}
+                      icon={Calendar}
+                      legend={`Fecha de caducidad: ${producto.FechaCaducidad ? new Date(producto.FechaCaducidad).toLocaleDateString() : 'N/A'}`}
+                    />
+                    <HtmlNewLabel color={"purple"} icon={Package} legend={`Cantidad: ${producto.Stock}`} />
+                  </div>
+                  <div className="flex gap-3 justify-center mt-4">
+                    <HtmlTableButton
+                      color={"blue"}
+                      tooltip={"Editar Producto"}
+                      icon={Pencil}
+                      onClick={() => { setSelectedProductoId(producto.ProductoID); setEditar(true); }}
+                    />
+                    <HtmlTableButton
+                      color={"red"}
+                      tooltip={"Eliminar Producto"}
+                      icon={Trash}
+                      onClick={() => { setSelectedProductoId(producto.ProductoID); setOpen(true); }}
+                    />
                   </div>
                 </div>
               ))}

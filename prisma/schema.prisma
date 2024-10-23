@@ -168,7 +168,7 @@ enum EstadoFac {
 model Proveedores {
   ProveedorID   Int             @id @default(autoincrement())
   Nombre        String
-  Tipo          String   @default("Desconocido")
+  Tipo          String          @default("Desconocido")
   Direccion     String?
   Telefono      String?
   Email         String          @unique
