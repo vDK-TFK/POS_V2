@@ -7,8 +7,6 @@ import HtmlFormInput from "../HtmlHelpers/FormInput";
 import HtmlFormSelect from "../HtmlHelpers/FormSelect";
 import HtmlTextArea from "../HtmlHelpers/TextArea";
 import { ClipLoader } from "react-spinners";
-import TicketFactura from "./ticket";
-import { useReactToPrint } from "react-to-print";
 
 export default function ModalRegistrarPago({ open, onClose, objFactura, onReload }) {
   const [disableFields, onDisable_Fields] = useState(true);

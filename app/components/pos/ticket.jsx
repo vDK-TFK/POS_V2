@@ -94,7 +94,7 @@ const TicketFactura = React.forwardRef(function TicketFactura({ item }, ref) {
 
                 <div className="m-3 break-words text-xs">
                     <strong>Teléfonos Cliente:</strong>
-                    <p className='text-xs'>{item.Receptor.Telefono} // {item.Receptor.Celular}</p>
+                    <p className='text-xs'>{item.Receptor.Telefono} / {item.Receptor.Celular}</p>
                 </div>
 
                 <div style={{ fontSize: "10px" }} className="m-2 break-words text-xs">
