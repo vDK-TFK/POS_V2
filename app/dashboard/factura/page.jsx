@@ -50,7 +50,7 @@ export default function Inventario() {
           throw new Error('Error en la respuesta de la red');
         }
         const result = await response.json();
-        setData(result);
+        setData(result); 
       } catch (err) {
         setError(err);
       }
@@ -69,11 +69,12 @@ export default function Inventario() {
   if (!data.length) return <div>Cargando...</div>;
 
   const filteredData = Array.isArray(data) ? data.filter(factura => {
-    const nombreCliente = factura.cliente.nombre.toLowerCase() + factura.cliente.apellido.toLowerCase();
+    //const nombreCliente = factura.cliente.nombre.toLowerCase() + factura.cliente.apellido.toLowerCase();
+    const nombreCliente = "Cliente General"
     const facturaId = factura.idFactura.toString().padStart(6, '0');
     const searchLower = searchTerm.toLowerCase();
   const filteredData = Array.isArray(data) ? data.filter(factura => {
-    const nombreCliente = factura.cliente.nombre.toLowerCase() + factura.cliente.apellido.toLowerCase();
+    //const nombreCliente = factura.cliente.nombre.toLowerCase() + factura.cliente.apellido.toLowerCase();
     const facturaId = factura.idFactura.toString().padStart(6, '0');
     const searchLower = searchTerm.toLowerCase();
 
@@ -162,7 +163,7 @@ export default function Inventario() {
                     </span>
                     <span className='flex flex-col items-start'>
                       <p className="text-md font-semibold text-gray-900 dark:text-gray-400">
-                      {factura.cliente.nombre} {factura.cliente.apellido}
+                      Cliente
                       </p>
                       <p className="text-sm font-normal text-gray-900 dark:text-gray-400">
                       {obtenerFechaEnEspanol(factura.fechaEmision)}

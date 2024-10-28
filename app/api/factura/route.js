@@ -1,55 +1,56 @@
+import { PrismaClient } from '@prisma/client';
 import { NextResponse } from 'next/server';
-import db from '@/app/lib/db';
 
-export async function GET() {
+
+const prisma = new PrismaClient();
+
+export async function POST(request) {
   try {
-    const detalles = await db.detallesFactura.findMany({
-      include: {
-        fk_factura: {
-          include: {
-            cliente: true, 
-          }
+    
+    const model = await request.json();
+  console.log(model);
+    const listaFacturas = await prisma.facturas.findMany({
+      select: {
+        idFactura: true,
+        nombreCliente: true,
+        fechaEmision: true,
+        estadoFac: true,
+        medioPago: true,
+        total: true,
+        estadoFac: true,
+      },
+      where: {
+        fechaEmision: {
+          gte: model.fechaInicial,
+          lte: model.fechaFinal,
         },
-        fk_productoVenta: true 
-      }
+        ...(model.estadoFac ? { estadoFac: model.estadoFac } : {}),
+        ...(model.idMedioPago ? { idMedioPago: Number(model.idMedioPago) } : {}),
+      },
     });
 
-    if (!Array.isArray(detalles) || detalles.length === 0) {
-      return NextResponse.json({ error: 'No se encontraron detalles de factura' }, { status: 404 });
+    if (listaFacturas.length == 0) {
+      return NextResponse.json({
+        code: 204,
+        status: "failed",
+        message: "No se han encontrado facturas",
+      });
     }
 
-    const agrupadoPorFactura = detalles.reduce((acc, detalle) => {
-      if (!acc[detalle.idFactura]) {
-        acc[detalle.idFactura] = {
-          idFactura: detalle.fk_factura.idFactura,
-          fechaEmision: detalle.fk_factura.fechaEmision,
-          cliente: detalle.fk_factura.cliente,
-          total: detalle.fk_factura.total,
-          idMedioPago: detalle.fk_factura.idMedioPago,
-          estadoFac: detalle.fk_factura.estadoFac,
-          detalles: [] // Inicializa una lista de detalles
-        };
-      }
-
-      acc[detalle.idFactura].detalles.push({
-        idDetalleFactura: detalle.idDetalleFactura,
-        cantidad: detalle.cantidad,
-        descripcion: detalle.descripcion,
-        precio: detalle.precio,
-        producto: {
-          nombre: detalle.fk_productoVenta.nombre,
-          cantidad: detalle.fk_productoVenta.cantidad
-        }
-      });
-
-      return acc;
-    }, {});
-
-    const resultados = Object.values(agrupadoPorFactura);
-
-    return NextResponse.json(resultados);
+    return NextResponse.json({
+      code: 200,
+      status: "success",
+      data: listaFacturas,
+      message: "Se han obtenido las facturas",
+    });
   } catch (error) {
-    console.error('Error al obtener los detalles de factura:', error.message || error);
-    return NextResponse.json({ error: 'Error al obtener los detalles de factura' }, { status: 500 });
+    console.error("Error al obtener los datos:", error);
+    return NextResponse.json(
+      {
+        code: 500,
+        status: "error",
+        message: "Error al obtener los datos: " + error.message,
+      },
+    );
   }
 }

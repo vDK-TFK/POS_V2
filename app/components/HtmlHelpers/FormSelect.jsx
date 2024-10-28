@@ -21,7 +21,7 @@ const HtmlFormSelect = ({ id, legend, colSize, options, additionalClass, selecte
     return (
         <div className={`col-span-${colSize} m-2`}>
             <label htmlFor={id} className="block text-sm mb-2 font-medium text-gray-700 dark:text-gray-200">
-                {legend}
+                {legend}:
             </label>
             <select
                 id={id}

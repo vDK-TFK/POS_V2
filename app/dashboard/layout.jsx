@@ -30,7 +30,7 @@ export default function DashboardLayout({ children }) {
           </div>
 
         </main>
-        <Toaster expand={true} richColors position="bottom-right" />
+        <Toaster expand={true} richColors position="bottom-right" duration={4000} />
       </body>
     </Providers>
   );

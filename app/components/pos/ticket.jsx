@@ -45,10 +45,10 @@ const TicketFactura = React.forwardRef(function TicketFactura({ item }, ref) {
 
                 <hr className="mt-3 mb-3" />
 
-                <div style={{ overflowY: 'auto', maxHeight: '200px' }} className="flex justify-center">
+                <div className="flex justify-center">
                     <table className="table-auto max-w-lg border-collapse text-md w-full">
                         <thead>
-                            <tr className="">
+                            <tr>
                                 <th className="dark:text-gray-300 px-1 py-1 border-gray-300 text-center text-sm">#</th>
                                 <th className="dark:text-gray-300 px-2 py-1 border-gray-300 text-center text-sm">Cant.</th>
                                 <th className="dark:text-gray-300 px-8 py-1 border-gray-300 text-left text-sm">Descripción</th>
@@ -58,18 +58,23 @@ const TicketFactura = React.forwardRef(function TicketFactura({ item }, ref) {
                         <tbody>
                             {item.Detalles.map((detalle, index) => (
                                 <tr key={index}>
-                                    <td className="dark:text-gray-300 px-2 py-1 text-center"><strong>{detalle.NumeroLinea}</strong></td>
+                                    <td className="dark:text-gray-300 px-2 py-1 text-center">
+                                        <strong>{detalle.NumeroLinea}</strong>
+                                    </td>
                                     <td className="dark:text-gray-300 px-2 py-1 text-center">{detalle.Cantidad}</td>
-                                    <td className="dark:text-gray-300 px-2 py-1 text-left" style={{ wordWrap: 'break-word', wordBreak: 'break-all', whiteSpace: 'normal' }}>
+                                    <td
+                                        className="dark:text-gray-300 px-2 py-1 text-left"
+                                        style={{ wordWrap: 'break-word', wordBreak: 'break-all', whiteSpace: 'normal' }}
+                                    >
                                         {detalle.Descripcion}
                                     </td>
                                     <td className="dark:text-gray-300 px-2 py-1 text-left">₡{detalle.Precio}</td>
                                 </tr>
                             ))}
                         </tbody>
-
                     </table>
                 </div>
+
 
                 <hr className="mt-3 mb-3" />
 
@@ -98,8 +103,21 @@ const TicketFactura = React.forwardRef(function TicketFactura({ item }, ref) {
                 </div>
 
                 <div style={{ fontSize: "10px" }} className="m-2 break-words text-xs">
-                    Impreso el: {new Date().toLocaleDateString()}
+                    {item.EsReimpresion ? (
+                        <>
+                            Reimpreso el: {new Date().toLocaleDateString()}
+                            <div className="mt-4 items-center text-center">
+                                <strong>--------COMPROBANTE REIMPRESO--------</strong>
+                            </div>
+                        </>
+                    ) : (
+                        <>
+                            Impreso el: {new Date().toLocaleDateString()}
+                        </>
+                    )}
                 </div>
+
+
 
                 <div className="mt-2 items-center break-words text-xs text-center">
                     <strong>------GRACIAS POR SU COMPRA------</strong>

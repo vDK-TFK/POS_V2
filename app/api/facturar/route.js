@@ -24,7 +24,7 @@ export async function POST(request) {
       pagadoCon: parseFloat(pago.PagaCon),
       vuelto: parseFloat(pago.Vuelto),
       idInfoCaja: model.NumeroCaja,
-      idUsuarioCreacion: model.idUsuarioCreacion,
+      idUsuarioCreacion: Number(model.IdUsuarioCreacion),
       estadoFac: estadoFac,
     };
 
