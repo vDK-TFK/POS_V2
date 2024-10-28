@@ -104,20 +104,15 @@ export default function ListaFacturas() {
   const onSearch_Facturas = useCallback(async () => {
     onSet_onLoading(true);
     try {
-      // Crear objeto de fecha desde la cadena de fecha inicial
       const fechaInicio = new Date(`${formData.fechaInicial}T00:00:00Z`);
 
-      // Crear objeto de fecha desde la cadena de fecha final
       const fechaFin = new Date(`${formData.fechaFinal}T00:00:00Z`);
-      // Sumar 6 horas a la fecha final
       
-      // Establecer la fecha final a las 23:59:59
       fechaFin.setUTCHours(23);
       fechaFin.setUTCMinutes(59);
       fechaFin.setUTCSeconds(59);
       fechaFin.setUTCHours(fechaFin.getUTCHours() + 6);
 
-      // Crear el modelo para enviar
       let model = {
         fechaInicial: fechaInicio.toISOString(),
         fechaFinal: fechaFin.toISOString(),
@@ -125,7 +120,6 @@ export default function ListaFacturas() {
         idMedioPago: GetValueById("medioPago")
       };
 
-      console.log(model); // Para verificar la salida
 
       const response = await fetch('/api/factura', {
         method: 'POST',
@@ -137,15 +131,23 @@ export default function ListaFacturas() {
 
       if (result.status === "success") {
         onSet_ListaFacturas(result.data);
-      } else if (result.code === 204) {
+        toast.success("Se ha obtenido la información");
+      } 
+      else if (result.code === 204) {
+        toast.warning(result.message);
         onSet_ListaFacturas([]);
-      } else {
+      } 
+      else {
+        onSet_ListaFacturas([]);
         console.log("Error al obtener la info: " + result.message);
         toast.error("Sucedió un error al obtener las facturas");
       }
-    } catch (error) {
-      console.log("Error al obtener la info: " + error);
-    } finally {
+    } 
+    catch (error) {
+      console.log("Error al obtener las facturas: " + error);
+      toast.error("Sucedió un error al obtener las facturas: " + error);
+    } 
+    finally {
       onSet_onLoading(false);
     }
   }, [formData.fechaInicial, formData.fechaFinal]);
@@ -220,12 +222,27 @@ export default function ListaFacturas() {
               </div>
             ) : (
                 <div style={{ maxHeight: '19rem', overflowY: 'auto' }} className="grid grid-cols-1 md:grid-cols-3 gap-2 mx-0">
-                  {listaFacturas.map((item, index) => (
-                    <div className="col-span-1">
-                      <CardFactura key={index} factura={item} infoEmpresa={infoEmpresa} vistaDetalles={onView_ListaDetalles} accion={onAction_AnularPagar} idFactura={idFactura} />
+                  {listaFacturas.length === 0 ? (
+                    <div className="col-span-3 text-center">
+                      <div className="alert alert-warning" role="alert">
+                        No se encontraron registros
+                      </div>
                     </div>
-                  ))}
+                  ) : (
+                    listaFacturas.map((item, index) => (
+                      <div className="col-span-1" key={index}>
+                        <CardFactura
+                          factura={item}
+                          infoEmpresa={infoEmpresa}
+                          vistaDetalles={onView_ListaDetalles}
+                          accion={onAction_AnularPagar}
+                          idFactura={idFactura}
+                        />
+                      </div>
+                    ))
+                  )}
                 </div>
+
 
             )
           }

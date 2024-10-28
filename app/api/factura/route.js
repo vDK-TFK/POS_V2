@@ -8,7 +8,7 @@ export async function POST(request) {
   try {
     
     const model = await request.json();
-  console.log(model);
+
     const listaFacturas = await prisma.facturas.findMany({
       select: {
         idFactura: true,
@@ -33,7 +33,7 @@ export async function POST(request) {
       return NextResponse.json({
         code: 204,
         status: "failed",
-        message: "No se han encontrado facturas",
+        message: "No se han encontrado registros",
       });
     }
 

@@ -8,14 +8,14 @@ import { useReactToPrint } from "react-to-print";
 import { ClipLoader } from "react-spinners";
 import AnularPagarFactura from "./AnularPagarFactura";
 
-export default function CardFactura({ factura, infoEmpresa,vistaDetalles,accion,idFactura }) {
+export default function CardFactura({ factura, infoEmpresa, vistaDetalles, accion, idFactura }) {
   const [onLoading, onSet_onLoading] = useState(false);
   const [documentoJson, onSet_DocJson] = useState(null);
   const [action, onSet_Action] = useState("");
   const ticketRef = useRef();
 
   //Modals
-  const [modalAnularPagar,onModal_AnularPagar] = useState(false);
+  const [modalAnularPagar, onModal_AnularPagar] = useState(false);
 
   const colorStatus = (() => {
     switch (factura.estadoFac) {
@@ -45,58 +45,54 @@ export default function CardFactura({ factura, infoEmpresa,vistaDetalles,accion,
   const IconPagoMap = iconsMedioPago[factura.medioPago] || CoinsIcon;
 
   // #region [OBTENER JSON]
-  const onGet_JsonFactura = useCallback(async (facturaId, action) => {
+  const onGet_JsonFactura = async (facturaId, action) => {
     onSet_onLoading(true);
     onSet_DocJson(null);
     onSet_Action("");
     try {
       if (!facturaId) {
         toast.error("No fue proporcionado un Id para buscar la factura");
-      }
-      else {
+      } else {
         const response = await fetch(`/api/factura/${facturaId}`);
         const result = await response.json();
         if (result.status === "success") {
-          if (action == "print") {
+          if (action === "print") {
             toast.info("Imprimiendo factura...");
-            onSet_Action("print")
+            onSet_Action("print");
             const newJson = JSON.parse(result.data.documentoJson);
             newJson.Consecutivo = Number(facturaId);
             newJson.EsReimpresion = true;
 
             if (infoEmpresa.logo && infoEmpresa.tipoImagen) {
               const bufferImagen = Buffer.from(infoEmpresa.logo);
-              const imgBase64 = bufferImagen.toString('base64');
+              const imgBase64 = bufferImagen.toString("base64");
               const imgSrc = `data:${infoEmpresa.tipoImagen};base64,${imgBase64}`;
               newJson.LogoSource = imgSrc;
-            }
-            else {
+            } else {
               newJson.LogoSource = "/petote.png";
             }
-            handleReprint(newJson)
+            handleReprint(newJson);
           }
 
-          if(action == "details"){
+          if (action === "details") {
             toast.info("Mostrando Detalles...");
             onSet_Action("details");
             const newJson = JSON.parse(result.data.documentoJson);
             vistaDetalles(newJson);
           }
-        } 
-        else {
+        } else {
           console.log(result.message);
           toast.error(result.message);
         }
       }
-    } 
-    catch (error) {
+    } catch (error) {
       console.error("Error al obtener el cliente:", error);
       toast.error("Sucedió un error al obtener el cliente: " + error);
-    } 
-    finally {
+    } finally {
       onSet_onLoading(false);
     }
-  }, []);
+  };
+
   // #endregion
 
   // #region [RE-IMPRIMIR FACTURA]
@@ -158,7 +154,7 @@ export default function CardFactura({ factura, infoEmpresa,vistaDetalles,accion,
                 color={"blue"}
                 tooltip={"Ver Detalles"}
                 icon={List}
-                onClick={() => onGet_JsonFactura(factura.idFactura,"details")}
+                onClick={() => onGet_JsonFactura(factura.idFactura, "details")}
               />
 
               {/* Botón para reimprimir, llama a la función con idFactura */}
@@ -170,11 +166,11 @@ export default function CardFactura({ factura, infoEmpresa,vistaDetalles,accion,
               />
 
               {factura.estadoFac === "PAGADA" || factura.estadoFac === "ACTIVA" ? (
-                  <HtmlTableButton color={"red"} tooltip={"Anular"} onClick={() => { accion("cancel", factura.idFactura)}} icon={Ban} />
+                <HtmlTableButton color={"red"} tooltip={"Anular"} onClick={() => { accion("cancel", factura.idFactura) }} icon={Ban} />
               ) : null}
 
               {factura.estadoFac === "ACTIVA" ? (
-                  <HtmlTableButton color={"emerald"} icon={CreditCard} onClick={() => { accion("pay", factura.idFactura) }} tooltip={"Validar Pago"} />
+                <HtmlTableButton color={"emerald"} icon={CreditCard} onClick={() => { accion("pay", factura.idFactura) }} tooltip={"Validar Pago"} />
               ) : null}
             </div>
           )}
@@ -186,7 +182,7 @@ export default function CardFactura({ factura, infoEmpresa,vistaDetalles,accion,
         </div>
       )}
 
-      
+
     </div>
 
   );
