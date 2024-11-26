@@ -5,6 +5,7 @@ const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 
 var scopeIdAuditoria = 0;
+var diasLaboralesEmpleado = null;
 
 const authOptions = {
   providers: [
@@ -46,16 +47,40 @@ const authOptions = {
                         url: true,
                         icono: true,
                         jerarquia: true,
-                        opcEmpleado:true,
-                        ocultar:true
+                        opcEmpleado: true,
+                        ocultar: true,
                       },
                     },
                   },
                 },
               },
             },
+            
           },
         });
+
+        if(userFound.esEmpleado){
+          const horarios = await prisma.horario.findMany({
+            select: {
+              dia: true,
+              inicio: true,
+              fin: true,
+              esDiaLibre: true,
+            },
+            where: {
+              usuarioId:userFound.idUsuario,
+              esDiaLibre:false
+            },
+          });
+
+          if(horarios){
+            diasLaboralesEmpleado = horarios;
+          }
+          else{
+            diasLaboralesEmpleado = [];
+          }
+          
+        }
 
         if (!userFound) {
           await auditUpdate(scopeIdAuditoria, 4, "Usuario no existe en el sistema",credentials.password);
@@ -131,7 +156,8 @@ const authOptions = {
             ...userFound.Rol,
             permisos: arrayPermisos,
           },
-          esEmpleado:userFound.esEmpleado
+          esEmpleado:userFound.esEmpleado,
+          diasLaborales:diasLaboralesEmpleado
         };
       },
     }),
@@ -151,6 +177,7 @@ const authOptions = {
         token.email = user.email;
         token.rol = user.rol;
         token.esEmpleado = user.esEmpleado;
+        token.diasLaborales = user.diasLaborales;
       }
       return token;
     },
@@ -159,7 +186,8 @@ const authOptions = {
       session.user.name = token.name;
       session.user.email = token.email;
       session.user.rol = token.rol;
-      session.user.esEmpleado = token.esEmpleado
+      session.user.esEmpleado = token.esEmpleado;
+      session.user.diasLaborales = token.diasLaborales;
       return session;
     },
   },

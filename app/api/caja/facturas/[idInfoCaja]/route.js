@@ -81,7 +81,9 @@ export async function GET(request, { params }) {
             montoInicioCaja: montoInicio,
             totalEntradas: entradas,
             totalSalidas: salidas,
-            diferencia: ((montoInicio + entradas + Number(totalFacturado)) - salidas) - montoCierre
+            diferencia: ((montoInicio + entradas + Number(totalFacturado)) - salidas) - montoCierre,
+            fechaApertura:infoCaja.fechaApertura,
+            fechaCierre:infoCaja.fechaCierre
         };
 
         return NextResponse.json({

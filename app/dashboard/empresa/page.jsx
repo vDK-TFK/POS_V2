@@ -40,7 +40,7 @@ export default function InfoEmpresa() {
             toast.success('Se ha obtenido la información');
             onSet_Empresa(result.data);
 
-            if(result.data.logo){
+            if (result.data.logo) {
                const bufferImagen = Buffer.from(result.data.logo);
                const imgBase64 = bufferImagen.toString('base64');
                const imgSrc = `data:${result.data.tipoImagen};base64,${imgBase64}`;
@@ -48,7 +48,7 @@ export default function InfoEmpresa() {
                setImagePreview(imgSrc);
             }
 
-            if(result.data){
+            if (result.data) {
                onSet_EsActualizar(true);
 
             }
@@ -149,7 +149,7 @@ export default function InfoEmpresa() {
          });
 
          const result = await response.json();
-         
+
          if (result.status == "success") {
             toast.success('Información actualizada satisfactoriamente');
          }
@@ -162,7 +162,7 @@ export default function InfoEmpresa() {
       }
       catch (error) {
          toast.error("Sucedió un error al actualizar la información", error);
-         console.error("Sucedió un error al actualizar la información",error);
+         console.error("Sucedió un error al actualizar la información", error);
       }
 
    }
@@ -276,52 +276,71 @@ export default function InfoEmpresa() {
                   <HtmlBreadCrumb items={itemsBreadCrumb} />
                </ol>
             </nav>
-            <div className="p-2">
-               <h4 className="text-2xl font-bold dark:text-white">Información de la empresa</h4>
-            </div>
-            <hr />
-            <form method="POST" onSubmit={onSubmit_Form}>
-               <div className="grid gap-4 mt-4 mb-4 grid-cols-12">
-                  <HtmlFormInput id={"txtNombre"} name="nombre" additionalClass={"ipt-empresa"} value={empresa.nombre} legend={"Nombre"} colSize={4} onChange={eventoForm} />
-                  <HtmlFormInput id={"txtNombreComercial"} name="nombreComercial" additionalClass={"ipt-empresa"} value={empresa.nombreComercial} legend={"Nombre Comercial"} colSize={4} onChange={eventoForm} />
-                  <HtmlFormInput id={"txtIdentificacion"} name="identificacion" additionalClass={"ipt-empresa"} value={empresa.identificacion} legend={"Identificación"} colSize={4} onChange={eventoForm} />
-               </div>
-
-               <div className="grid gap-4 mt-4 mb-4 grid-cols-12">
-                  <HtmlFormInput id={"txtCorreo"} name="correo" additionalClass={"ipt-empresa"} value={empresa.correo} legend={"Correo"} colSize={3} onChange={eventoForm} />
-                  <HtmlFormInput id={"txtTelefono"} name="telefono" additionalClass={"ipt-empresa"} value={empresa.telefono} legend={"Teléfono"} colSize={2} onChange={eventoForm} />
-                  <HtmlFormInput id={"txtCelular"} name="celular" additionalClass={"ipt-empresa"} value={empresa.celular} legend={"Celular"} colSize={2} onChange={eventoForm} />
-                  <HtmlFormInput id={"txtDireccion"} name="direccion" additionalClass={"ipt-empresa"} value={empresa.direccion} legend={"Dirección"} colSize={5} onChange={eventoForm} />
-               </div>
-            </form>
-            <hr />
-            <div className="grid gap-4 mt-4 mb-4 grid-cols-12">
-               <HtmlFormInput type={"file"} legend={"Logotipo"} colSize={6} onChange={onCharge_Imagen} />
-               <div className="col-span-3 mt-10">
-                  {!esActualizar && (
-                     <HtmlButton type="submit" color={"green"} legend={"Guardar Información"} onClick={() => { onSave_InfoEmpresa() }} icon={Check} />
-                  )}
-                  {esActualizar && (
-                     <HtmlButton type="submit" color={"blue"} legend={"Actualizar Información"} onClick={() => { onUpdate_InfoEmpresa() }} icon={ArrowLeftCircle} />
-                  )}
-               </div>
-            </div>
-            {imagePreview && (
-               <div className="grid gap-4 mt-2 mb-4 grid-cols-12">
-                  <div className="col-span-2">
-                     <div className="mt-2 border-2 flex flex-col">
-                        <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">Vista Previa:</h3>
-                        <div>
-                           <Image src={imagePreview} alt="Preview" className="max-w-40 max-h-40" width={200} height={200} />
-                        </div>
-                     </div>
-                  </div>
-               </div>
-            )}
-
-
          </div>
-         <Toaster richColors />
+
+         <div className="w-full pl-4 pr-4">
+            <div className="block w-full p-6 bg-white border border-gray-200 rounded-lg shadow">
+               <h5 className="mb-2 text-2xl font-bold tracking-tight text-gray-900 dark:text-white">
+                  Información de la Empresa
+               </h5>
+               {loading
+                  ? (
+                     <ClipLoader size={30} speedMultiplier={1.5} />
+                  )
+                  :
+                  (
+                     <>
+                        <form method="POST" onSubmit={onSubmit_Form}>
+                           <div className="grid gap-4 mt-4 mb-4 grid-cols-12">
+                              <HtmlFormInput id={"txtNombre"} name="nombre" additionalClass={"ipt-empresa"} value={empresa.nombre} legend={"Nombre"} colSize={4} onChange={eventoForm} />
+                              <HtmlFormInput id={"txtNombreComercial"} name="nombreComercial" additionalClass={"ipt-empresa"} value={empresa.nombreComercial} legend={"Nombre Comercial"} colSize={4} onChange={eventoForm} />
+                              <HtmlFormInput id={"txtIdentificacion"} name="identificacion" additionalClass={"ipt-empresa"} value={empresa.identificacion} legend={"Identificación"} colSize={4} onChange={eventoForm} />
+                           </div>
+
+                           <div className="grid gap-4 mt-4 mb-4 grid-cols-12">
+                              <HtmlFormInput id={"txtCorreo"} name="correo" additionalClass={"ipt-empresa"} value={empresa.correo} legend={"Correo"} colSize={3} onChange={eventoForm} />
+                              <HtmlFormInput id={"txtTelefono"} name="telefono" additionalClass={"ipt-empresa"} value={empresa.telefono} legend={"Teléfono"} colSize={2} onChange={eventoForm} />
+                              <HtmlFormInput id={"txtCelular"} name="celular" additionalClass={"ipt-empresa"} value={empresa.celular} legend={"Celular"} colSize={2} onChange={eventoForm} />
+                              <HtmlFormInput id={"txtDireccion"} name="direccion" additionalClass={"ipt-empresa"} value={empresa.direccion} legend={"Dirección"} colSize={5} onChange={eventoForm} />
+                           </div>
+                        </form>
+
+                        <div className="grid gap-4 mt-4 mb-4 grid-cols-12">
+                           <HtmlFormInput type={"file"} legend={"Logotipo"} colSize={1} onChange={onCharge_Imagen} />
+                           <div className="col-span-4 mt-10">
+
+                              {!esActualizar && (
+                                 <HtmlButton type="submit" color={"green"} legend={"Guardar Información"} onClick={() => { onSave_InfoEmpresa() }} icon={Check} />
+                              )}
+                              {esActualizar && (
+                                 <HtmlButton type="submit" color={"blue"} legend={"Actualizar Información"} onClick={() => { onUpdate_InfoEmpresa() }} icon={ArrowLeftCircle} />
+                              )}
+
+                           </div>
+                        </div>
+
+                        {imagePreview && (
+                           <div className="grid gap-4 mt-2 mb-4 grid-cols-12">
+                              <div className="col-span-2">
+                                 <div className="mt-2 border-2 flex flex-col">
+                                    <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">Vista Previa:</h3>
+                                    <div>
+                                       <Image src={imagePreview} alt="Preview" className="max-w-40 max-h-40" width={200} height={200} />
+                                    </div>
+                                 </div>
+                              </div>
+                           </div>
+                        )}
+                     </>
+
+                  )
+
+               }
+
+
+            </div>
+         </div>
+
       </>
    );
 }

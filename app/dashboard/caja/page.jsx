@@ -30,6 +30,8 @@ import { getSession, useSession } from "next-auth/react";
 import { useEffect, useRef, useState, useCallback } from "react";
 import { ClipLoader } from "react-spinners";
 import { Toaster, toast } from "sonner";
+import { useReactToPrint } from "react-to-print";
+import TicketCaja from "@/app/components/caja/printCaja";
 
 const itemsBreadCrumb = ["Home", "Caja"];
 
@@ -50,6 +52,12 @@ export default function Caja() {
   const indexOfFirstCaja = indexOfLastCaja - registrosPorPagina;
   const currentCajas = infoCaja.slice(indexOfFirstCaja, indexOfLastCaja);
   const paginate = (pageNumber) => onSet_PaginaActual(pageNumber);
+
+  //Imprimir cierre
+  const [selectedItem, setSelectedItem] = useState(null);
+  const ticketRef = useRef();
+  const [shouldPrint, setShouldPrint] = useState(false);
+  const [printReady, setPrintReady] = useState(false);
 
   //Sesion
   const { data: session } = useSession();
@@ -135,6 +143,39 @@ export default function Caja() {
       onSet_onLoading(false);
     }
   }, []);
+
+  const onGet_Caja = useCallback(async (item) => {
+    try {
+      const response = await fetch(`/api/caja/facturas/${item.idInfoCaja}`);
+      const result = await response.json();
+
+      if (result.status === "success") {
+        setSelectedItem(result.data);
+      } else if (result.code === 204) {
+        toast.warning(result.message);
+      } else {
+        toast.error(result.message);
+      }
+    } catch (error) {
+      console.error("Error al obtener la información de la caja:", error);
+      toast.error("Error al obtener la información de la caja: " + error);
+    }
+  }, []);
+
+  const handlePrintClick = async (item) => {
+    await onGet_Caja(item); 
+
+    setTimeout(() => {
+      if (ticketRef.current) {
+        handlePrint(); 
+      }
+    }, 100); 
+  };
+
+  const handlePrint = useReactToPrint({
+    content: () => ticketRef.current,
+    documentTitle: "Ticket Cierre de Caja",
+  });
 
   async function onPost_AbrirCaja() {
     let isValid = ValidateFormByClass("fc-montoInicio");
@@ -328,7 +369,7 @@ export default function Caja() {
                                     tooltip={"Imprimir Cierre"}
                                     color={"teal"}
                                     onClick={() => {
-                                      onSet_IdCaja(item.idInfoCaja)
+                                      handlePrintClick(item)
                                     }}
                                     icon={Printer}
                                   />
@@ -441,6 +482,12 @@ export default function Caja() {
         idInfoCaja={setIdCaja}
       />
       <CierreCaja open={openModalCierre} idInfoCaja={setIdCaja} onClose={() => { onSet_ModalCierre(false)}} onGet_ListaInfoCaja={onGet_ListaInfoCaja} />
+      {selectedItem && (
+        <div style={{ display: "none" }}>
+          <TicketCaja ref={ticketRef} item={selectedItem} />
+        </div>
+      )}  
+
     </>
   );
 }

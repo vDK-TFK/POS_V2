@@ -81,7 +81,7 @@ export function FormatDate12Hours(fechaISO) {
 
     const horasFormateadas = String(horas).padStart(2, '0');
 
-    return `${horasFormateadas}:${minutos} ${ampm} ${dia}/${mes}/${anio}`;
+    return `${dia}/${mes}/${anio} ${horasFormateadas}:${minutos} ${ampm}`;
 }
 
 
@@ -268,5 +268,10 @@ export function getDateCR() {
   
     return new Date();
   }
-  
+ 
+export function FormatCurrency(value){
+  const parts = value.toFixed(2).split("."); // Asegura dos decimales
+  parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ","); // Agrega comas a los miles
+  return `${parts[0]}.${parts[1]}`; // Une el entero con los decimales
+};  
   
