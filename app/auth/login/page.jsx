@@ -121,7 +121,6 @@ export default function Login() {
 
                 </div>
             </div>
-            <Toaster richColors expand={true} position="top-right" />
 
             <CambioClave open={cambioClave} onClose={() => setCambioClave(false)} />
         </div>

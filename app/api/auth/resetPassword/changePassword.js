@@ -29,10 +29,10 @@ export const changePassword = async (resetPasswordToken, password) => {
 
     await db.usuarios.update({
         where: {
-            Id: user.Id // Usar 'Id' con mayúscula
+            idUsuario: user.idUsuario // Cambia 'Id' por 'idUsuario'
         },
         data: {
-            password: passwordHash, // Actualizar el campo 'password' en lugar de 'passwordHash'
+            clave: passwordHash, // Cambia 'password' a 'clave'
             resetPasswordToken: null,
             resetPasswordTokenExpiry: null
         }
