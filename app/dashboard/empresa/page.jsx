@@ -291,46 +291,56 @@ export default function InfoEmpresa() {
                   (
                      <>
                         <form method="POST" onSubmit={onSubmit_Form}>
-                           <div className="grid gap-4 mt-4 mb-4 grid-cols-12">
-                              <HtmlFormInput id={"txtNombre"} name="nombre" additionalClass={"ipt-empresa"} value={empresa.nombre} legend={"Nombre"} colSize={4} onChange={eventoForm} />
-                              <HtmlFormInput id={"txtNombreComercial"} name="nombreComercial" additionalClass={"ipt-empresa"} value={empresa.nombreComercial} legend={"Nombre Comercial"} colSize={4} onChange={eventoForm} />
-                              <HtmlFormInput id={"txtIdentificacion"} name="identificacion" additionalClass={"ipt-empresa"} value={empresa.identificacion} legend={"Identificación"} colSize={4} onChange={eventoForm} />
+                           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mx-auto">
+                              <HtmlFormInput id={"txtNombre"} name="nombre" additionalClass={"ipt-empresa"} value={empresa.nombre} legend={"Nombre"} colSize={1} onChange={eventoForm} />
+                              <HtmlFormInput id={"txtNombreComercial"} name="nombreComercial" additionalClass={"ipt-empresa"} value={empresa.nombreComercial} legend={"Nombre Comercial"} colSize={1} onChange={eventoForm} />
+                              <HtmlFormInput id={"txtIdentificacion"} name="identificacion" additionalClass={"ipt-empresa"} value={empresa.identificacion} legend={"Identificación"} colSize={1} onChange={eventoForm} />
                            </div>
 
-                           <div className="grid gap-4 mt-4 mb-4 grid-cols-12">
-                              <HtmlFormInput id={"txtCorreo"} name="correo" additionalClass={"ipt-empresa"} value={empresa.correo} legend={"Correo"} colSize={3} onChange={eventoForm} />
-                              <HtmlFormInput id={"txtTelefono"} name="telefono" additionalClass={"ipt-empresa"} value={empresa.telefono} legend={"Teléfono"} colSize={2} onChange={eventoForm} />
-                              <HtmlFormInput id={"txtCelular"} name="celular" additionalClass={"ipt-empresa"} value={empresa.celular} legend={"Celular"} colSize={2} onChange={eventoForm} />
-                              <HtmlFormInput id={"txtDireccion"} name="direccion" additionalClass={"ipt-empresa"} value={empresa.direccion} legend={"Dirección"} colSize={5} onChange={eventoForm} />
+                           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mx-auto">
+                              <HtmlFormInput id={"txtCorreo"} name="correo" additionalClass={"ipt-empresa"} value={empresa.correo} legend={"Correo"} colSize={1} onChange={eventoForm} />
+                              <HtmlFormInput id={"txtTelefono"} name="telefono" additionalClass={"ipt-empresa"} value={empresa.telefono} legend={"Teléfono"} colSize={1} onChange={eventoForm} />
+                              <HtmlFormInput id={"txtCelular"} name="celular" additionalClass={"ipt-empresa"} value={empresa.celular} legend={"Celular"} colSize={1} onChange={eventoForm} />
+                           </div>
+
+                           <div className="grid grid-cols-1 md:grid-cols-1 gap-4 mx-auto">
+                              <HtmlFormInput id={"txtDireccion"} name="direccion" additionalClass={"ipt-empresa"} value={empresa.direccion} legend={"Dirección"} colSize={1} onChange={eventoForm} />
                            </div>
                         </form>
 
-                        <div className="grid gap-4 mt-4 mb-4 grid-cols-12">
+                        <div className="grid grid-cols-1 md:grid-cols-1 gap-4 mx-auto">
                            <HtmlFormInput type={"file"} legend={"Logotipo"} colSize={1} onChange={onCharge_Imagen} />
-                           <div className="col-span-4 mt-10">
+                           
+                        </div>
+                        
 
-                              {!esActualizar && (
-                                 <HtmlButton type="submit" color={"green"} legend={"Guardar Información"} onClick={() => { onSave_InfoEmpresa() }} icon={Check} />
-                              )}
-                              {esActualizar && (
-                                 <HtmlButton type="submit" color={"blue"} legend={"Actualizar Información"} onClick={() => { onUpdate_InfoEmpresa() }} icon={ArrowLeftCircle} />
-                              )}
-
-                           </div>
+                        <div className="grid grid-cols-1 md:grid-cols-1 gap-4 mx-auto">
+                           {!esActualizar && (
+                              <HtmlButton type="submit" color={"green"} legend={"Guardar Información"} onClick={() => { onSave_InfoEmpresa() }} icon={Check} />
+                           )}
+                           {esActualizar && (
+                              <HtmlButton type="submit" color={"blue"} legend={"Actualizar Información"} onClick={() => { onUpdate_InfoEmpresa() }} icon={ArrowLeftCircle} />
+                           )}
                         </div>
 
                         {imagePreview && (
-                           <div className="grid gap-4 mt-2 mb-4 grid-cols-12">
-                              <div className="col-span-2">
-                                 <div className="mt-2 border-2 flex flex-col">
+                           <div className="grid grid-cols-1 md:grid-cols-1 gap-4 mx-auto">
+                              <div className="col-span-1">
+                                 <div className="mt-2 border-2 inline-block">
                                     <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">Vista Previa:</h3>
-                                    <div>
-                                       <Image src={imagePreview} alt="Preview" className="max-w-40 max-h-40" width={200} height={200} />
-                                    </div>
+                                    <Image
+                                       src={imagePreview}
+                                       alt="Preview"
+                                       className="block"
+                                       width={200}
+                                       height={200}
+                                    />
                                  </div>
                               </div>
                            </div>
                         )}
+
+                        
                      </>
 
                   )

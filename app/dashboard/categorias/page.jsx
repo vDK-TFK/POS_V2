@@ -12,12 +12,13 @@ import HtmlButton from "@/app/components/HtmlHelpers/Button";
 import HtmlBreadCrumb from "@/app/components/HtmlHelpers/BreadCrumb";
 import HtmlTableButton from "@/app/components/HtmlHelpers/TableButton";
 import useSWR from 'swr';
+import * as XLSX from 'xlsx';
 import { useSession } from 'next-auth/react';
 
 const fetcher = (url) => fetch(url).then((res) => res.json());
 
 export default function Categorias() {
-    const { data: session } = useSession(); 
+    const { data: session } = useSession();
     const [paginaActual, setPaginaActual] = useState(1);
     const [registrosPorPagina] = useState(5); // Cantidad de registros por página
     const [open, setOpen] = useState(false);
@@ -56,6 +57,73 @@ export default function Categorias() {
         setPaginaActual(1); // Resetear a la primera página cuando se busca
     };
 
+    const handleExport = () => {
+        if (!filteredData || filteredData.length === 0) {
+            alert("No hay datos para exportar.");
+            return;
+        }
+        generateExcelReport(filteredData);
+    };
+
+    const generateExcelReport = (data) => {
+        const formattedData = data.map((categoria) => ({
+            "ID Categoría": categoria.CategoriaProductoID,
+            "Nombre": categoria.NombreCategoria,
+            "Descripción": categoria.Descripcion || "N/A",
+        }));
+
+        const worksheet = XLSX.utils.json_to_sheet(formattedData);
+
+        const headerStyle = {
+            font: { bold: true, color: { rgb: "FFFFFF" } },
+            fill: { fgColor: { rgb: "4F81BD" } },
+            alignment: { horizontal: "center", vertical: "center" },
+            border: {
+                top: { style: "thin", color: { rgb: "000000" } },
+                bottom: { style: "thin", color: { rgb: "000000" } },
+                left: { style: "thin", color: { rgb: "000000" } },
+                right: { style: "thin", color: { rgb: "000000" } },
+            },
+        };
+
+        const range = XLSX.utils.decode_range(worksheet["!ref"]);
+        for (let C = range.s.c; C <= range.e.c; C++) {
+            const cellAddress = XLSX.utils.encode_cell({ r: 0, c: C });
+            if (!worksheet[cellAddress]) continue;
+            worksheet[cellAddress].s = headerStyle;
+        }
+
+        const cellStyle = {
+            alignment: { horizontal: "left", vertical: "center" },
+            font: { color: { rgb: "333333" } },
+        };
+
+        for (let R = range.s.r + 1; R <= range.e.r; R++) {
+            for (let C = range.s.c; C <= range.e.c; C++) {
+                const cellAddress = XLSX.utils.encode_cell({ r: R, c: C });
+                if (!worksheet[cellAddress]) continue;
+                worksheet[cellAddress].s = cellStyle;
+            }
+        }
+
+        const columnWidths = [
+            { wch: 15 },
+            { wch: 30 },
+            { wch: 40 },
+        ];
+        worksheet["!cols"] = columnWidths;
+
+        const workbook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(workbook, worksheet, "Categorías");
+
+        const excelBuffer = XLSX.write(workbook, { bookType: "xlsx", type: "array" });
+        const dataBlob = new Blob([excelBuffer], { type: "application/octet-stream" });
+        const downloadLink = document.createElement("a");
+        downloadLink.href = URL.createObjectURL(dataBlob);
+        downloadLink.download = "Categorias.xlsx";
+        downloadLink.click();
+    };
+
     if (error) return <div>Error al cargar los datos</div>;
     if (!data) return <div>Cargando...</div>;
     if (!data || !Array.isArray(data)) return <div>No hay datos disponibles</div>;
@@ -85,10 +153,14 @@ export default function Categorias() {
                                 <CirclePlus className="text-white" />
                                 Agregar
                             </button>
-                            <button className="flex gap-3 shadow-lg text-green-500 dark:text-green-400 font-semibold bg-white dark:bg-gray-700 px-4 py-2 active:scale-95 transition-transform ease-in-out duration-75 hover:scale-105 transform border border-green-500 dark:border-green-400 rounded-lg">
+                            <button
+                                onClick={handleExport}
+                                className="flex gap-3 shadow-lg text-green-500 dark:text-green-400 font-semibold bg-white dark:bg-gray-700 px-4 py-2 active:scale-95 transition-transform ease-in-out duration-75 hover:scale-105 transform border border-green-500 dark:border-green-400 rounded-lg"
+                            >
                                 <FileUp className="text-green-500 dark:text-green-400" />
                                 Exportar
                             </button>
+
                         </div>
                     </div>
                     <div className="shadow-lg col-span-10 bg-white dark:bg-gray-700 px-5 py-4 rounded-lg">

@@ -3,6 +3,7 @@
 import Agregar from "@/app/components/proveedor/crear";
 import { CirclePlus, FileUp, Pencil, SlidersHorizontal, Trash, Eye, PhoneCall, AtSign, Tag, User, PanelsTopLeft } from "lucide-react";
 import { useState, useEffect } from "react";
+import * as XLSX from 'xlsx';
 import HtmlTableButton from "@/app/components/HtmlHelpers/TableButton";
 import HtmlNewLabel from "@/app/components/HtmlHelpers/Label1";
 import Eliminar from "../../components/proveedor/eliminar";
@@ -65,6 +66,84 @@ export default function Proveedores() {
         setOpen(false);
     };
 
+    const handleExport = () => {
+        if (filteredData.length > 0) {
+            generateExcelReport(filteredData);
+        } else {
+            alert("No hay datos para exportar.");
+        }
+    };
+
+    const generateExcelReport = (data) => {
+        const formattedData = data.map(proveedor => ({
+            "ID Proveedor": proveedor.ProveedorID,
+            "Nombre": proveedor.Nombre,
+            "Teléfono": proveedor.Telefono,
+            "Correo Electrónico": proveedor.Email,
+            "Sitio Web": proveedor.SitioWeb
+        }));
+
+        // Crear hoja de Excel
+        const worksheet = XLSX.utils.json_to_sheet(formattedData);
+
+        // Estilo de los encabezados
+        const headerStyle = {
+            font: { bold: true, color: { rgb: "FFFFFF" } },
+            fill: { fgColor: { rgb: "4F81BD" } },
+            alignment: { horizontal: "center", vertical: "center" },
+            border: {
+                top: { style: "thin", color: { rgb: "000000" } },
+                bottom: { style: "thin", color: { rgb: "000000" } },
+                left: { style: "thin", color: { rgb: "000000" } },
+                right: { style: "thin", color: { rgb: "000000" } }
+            }
+        };
+
+        // Aplicar estilos al encabezado
+        const range = XLSX.utils.decode_range(worksheet['!ref']);
+        for (let C = range.s.c; C <= range.e.c; C++) {
+            const cellAddress = XLSX.utils.encode_cell({ r: 0, c: C });
+            if (!worksheet[cellAddress]) continue;
+            worksheet[cellAddress].s = headerStyle;
+        }
+
+        // Estilo para las celdas del contenido
+        const cellStyle = {
+            alignment: { horizontal: "left", vertical: "center" },
+            font: { color: { rgb: "333333" } }
+        };
+
+        for (let R = range.s.r + 1; R <= range.e.r; R++) {
+            for (let C = range.s.c; C <= range.e.c; C++) {
+                const cellAddress = XLSX.utils.encode_cell({ r: R, c: C });
+                if (!worksheet[cellAddress]) continue;
+                worksheet[cellAddress].s = cellStyle;
+            }
+        }
+
+        // Ajustar anchos de columna
+        const columnWidths = [
+            { wch: 15 }, // ID Proveedor
+            { wch: 30 }, // Nombre
+            { wch: 15 }, // Teléfono
+            { wch: 30 }, // Correo Electrónico
+            { wch: 40 }  // Sitio Web
+        ];
+        worksheet['!cols'] = columnWidths;
+
+        // Crear libro de Excel
+        const workbook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(workbook, worksheet, "Proveedores");
+
+        // Generar archivo Excel
+        const excelBuffer = XLSX.write(workbook, { bookType: "xlsx", type: "array" });
+        const dataBlob = new Blob([excelBuffer], { type: "application/octet-stream" });
+        const downloadLink = document.createElement("a");
+        downloadLink.href = URL.createObjectURL(dataBlob);
+        downloadLink.download = "Proveedores.xlsx";
+        downloadLink.click();
+    };
+
     return (
         <>
             <div className="w-full">
@@ -79,15 +158,16 @@ export default function Proveedores() {
                                 <CirclePlus className="text-white" />
                                 Agregar
                             </button>
-                            <button className="flex gap-3 shadow-lg text-green-500 dark:text-green-400 font-semibold bg-white dark:bg-gray-700 px-4 py-2 active:scale-95 transition-transform ease-in-out duration-75 hover:scale-105 transform border border-green-500 dark:border-green-400 rounded-lg">
+                            <button onClick={handleExport} className="flex gap-3 shadow-lg text-green-500 dark:text-green-400 font-semibold bg-white dark:bg-gray-700 px-4 py-2 active:scale-95 transition-transform ease-in-out duration-75 hover:scale-105 transform border border-green-500 dark:border-green-400 rounded-lg">
                                 <FileUp className="text-green-500 dark:text-green-400" />
                                 Exportar
                             </button>
                         </div>
                     </div>
                     <div className="shadow-lg col-span-10 bg-white dark:bg-gray-700 px-5 py-4 rounded-lg">
+                        {/* Tabla */}
                         <div className="relative overflow-x-auto shadow-md sm:rounded-lg">
-                            <div className="" style={{ overflow: 'auto', maxHeight: '30rem' }}>
+                            <div style={{ overflow: 'auto', maxHeight: '30rem' }}>
                                 <table className="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
                                     <thead className="text-xs text-gray-700 uppercase bg-gray-200 dark:bg-gray-700 dark:text-gray-400">
                                         <tr>
@@ -99,7 +179,6 @@ export default function Proveedores() {
                                             <th className="px-6 py-3 text-center" style={{ width: '15%' }}>Acciones</th>
                                         </tr>
                                     </thead>
-
                                     <tbody>
                                         {currentClientes.map((proveedor, index) => (
                                             proveedor !== null && (
@@ -190,8 +269,7 @@ export default function Proveedores() {
                     </div>
                 </div>
 
-                {/* Mantengo los demás elementos fuera de la tabla */}
-                <Eliminar open={open} onClose={() => setOpen(false)} proveedorId={selectedProveedorId} onEliminar={eliminarProveedor} />
+                <Eliminar open={open} onClose={() => setOpen(false)} proveedorId={selectedProveedorId} />
                 <Agregar open={agregar} onClose={() => setAgregar(false)} mutate={mutate} />
                 <Ver open={ver} onClose={() => setVer(false)} proveedorId={selectedProveedorId} />
                 <Editar open={editar} onClose={() => setEditar(false)} proveedorId={selectedProveedorId} mutate={mutate} />
