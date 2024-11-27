@@ -7,9 +7,17 @@ const ResetPasswordForm = () => {
     const [message, setMessage] = useState("")
 
     const handleSubmit = async () => {
-        const message = await resetPassword(email)
+        try {
+            if (!email) {
+                setMessage("Por favor, ingresa un correo electrónico.")
+                return
+            }
 
-        setMessage(message)
+            const responseMessage = await resetPassword(email)
+            setMessage(responseMessage)
+        } catch (error) {
+            setMessage(error.message || "Hubo un error al intentar reiniciar la contraseña.")
+        }
     }
 
     return (
