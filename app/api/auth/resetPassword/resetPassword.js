@@ -5,13 +5,13 @@ import crypto from "crypto"
 import { sendEmail } from "@/app/api/emails/sendEmail"
 import { ResetPasswordEmailTemplate } from "@/app/template/reset-password-email"
 
-export const resetPassword = async email => {
-  console.log("Reiniciando contraseña para: " + email)
+export const resetPassword = async correo => {
+  console.log("Reiniciando contraseña para: " + correo)
 
   // Buscar el usuario por email
   const user = await db.usuarios.findUnique({
     where: {
-      email
+      correo
     }
   })
 
@@ -28,20 +28,21 @@ export const resetPassword = async email => {
   // Actualizar el usuario con el token y la fecha de expiración
   await db.usuarios.update({
     where: {
-      Id: user.Id // Usar 'Id' con mayúscula
+      idUsuario: user.idUsuario // Cambia 'Id' por 'idUsuario'
     },
     data: {
       resetPasswordToken: resetPasswordToken,
       resetPasswordTokenExpiry: expiryDate
     }
   })
+  
 
   // Enviar el correo electrónico con el token de restablecimiento
   await sendEmail({
     from: "Pollo Petote <onboarding@resend.dev>",
-    to: [email],
+    to: [correo],
     subject: "Reinicie su contraseña",
-    react: ResetPasswordEmailTemplate({ email, resetPasswordToken })
+    react: ResetPasswordEmailTemplate({ correo, resetPasswordToken })
   })
 
   return "Password reset email sent"

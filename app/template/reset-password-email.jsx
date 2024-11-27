@@ -1,17 +1,20 @@
 import * as React from "react"
 
-export const ResetPasswordEmailTemplate = ({ email, resetPasswordToken }) => (
-    <div>
-        <h1>
-            Reiniciar la contraseña para: <b>{email}</b>
-        </h1>
-        <p>
-            Para reiniciar su contraseña, haga clic en este link y siga las instrucciones:
-        </p>
-        <a
-            href={`/auth/reset?token=${resetPasswordToken}`}
-        >
-            Clic aquí para reasignar la contraseña
-        </a>
-    </div>
-)
+export const ResetPasswordEmailTemplate = ({ correo, resetPasswordToken }) => {
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
+    const resetLink = `${baseUrl}/auth/reset?token=${resetPasswordToken}`;
+
+    return (
+        <div>
+            <h1>
+                Reiniciar la contraseña para: <b>{correo}</b>
+            </h1>
+            <p>
+                Para reiniciar su contraseña, haga clic en este link y siga las instrucciones:
+            </p>
+            <a href={resetLink}>
+                Clic aquí para reasignar la contraseña
+            </a>
+        </div>
+    );
+}
