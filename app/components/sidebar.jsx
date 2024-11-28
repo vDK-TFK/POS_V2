@@ -102,8 +102,15 @@ export default function Sidebar() {
           <div className="border-t border-gray-400 dark:border-gray-200 flex p-3">
             <div className={`flex justify-between items-center overflow-hidden transition-all ${expanded ? "w-52 ml-3" : "w-0"}`}>
               <div className="leading-4 text-gray-700 dark:text-white">
-                {/* <h4 className="font-semibold">Grupo03</h4> */}
-                <span className="text-xs text-gray-600">Desarrollado por: Grupo 03</span>
+                <div className="flex items-center space-x-4">
+                  <img src="/user-profile.png" className="w-8 h-8 rounded-full object-cover" />
+                  <div className="flex flex-col">
+                    <label className="mb-1">{session?.user?.name}</label>
+                    <label>{session?.user?.name}</label>
+                  </div>
+                </div>
+
+               
               </div>
               <div className="flex flex-row space-x-2">
                 <a href="/api/auth/signout" title="Cerrar Sesión"  className="inline-flex items-center p-2 text-sm font-medium text-gray-500 rounded-lg dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-600">
