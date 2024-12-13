@@ -200,23 +200,24 @@ export default function Inventario() {
             Inventario
           </h5>
 
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mx-0 items-center">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 items-center">
             {/* Buscador */}
-            <div className="col-span-1 md:col-span-1">
+            <div className="col-span-1">
               <Buscador onSearch={handleSearch} />
             </div>
 
-            <div className="col-span-2  ml-8">
+            {/* Botón de filtro */}
+            <div className="ml-10 col-span-1 sm:col-span-1 md:col-span-1 flex justify-end sm:justify-start">
               <button
                 ref={filterButtonRef}
                 onClick={() => setIsMenuOpen(!isMenuOpen)}
-                className=" p-2 rounded-md bg-gray-200 dark:bg-gray-700">
+                className="p-2 rounded-md bg-gray-200 dark:bg-gray-700">
                 <Filter className="text-gray-900 dark:text-gray-100" />
               </button>
             </div>
 
             {/* Botones adicionales */}
-            <div className="col-span-1 md:col-span-1 flex space-x-2">
+            <div className="col-span-2 sm:col-span-2 md:col-span-2 flex justify-center sm:justify-end space-x-2">
               <HtmlButton
                 color="blue"
                 icon={Plus}
@@ -231,6 +232,7 @@ export default function Inventario() {
               />
             </div>
           </div>
+
 
           <hr className='mt-4' />
           <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 max-h-[80vh] overflow-y-auto">
