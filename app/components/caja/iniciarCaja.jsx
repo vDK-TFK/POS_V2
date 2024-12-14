@@ -36,6 +36,18 @@ export default function IniciarCaja({ open, onClose }) {
    );
 
    return (
-      <ModalTemplate children={modalChild} icon={InfoIcon} onClose={onClose} open={open} title={"Iniciar Caja"} />
+      <ModalTemplate icon={InfoIcon} onClose={onClose} open={open} title={"Iniciar Caja"}>
+         <p className="text-md text-gray-800 dark:text-gray-100">
+            No existe una caja abierta.
+         </p>
+         <p className="text-md text-gray-800 dark:text-gray-100">
+            Debe aperturar una caja para poder facturar
+         </p>
+         <form className="my-2 w-full flex flex-col items-center">
+            <div className="flex justify-center gap-6 mt-5">
+               <HtmlButton onClick={aperturarCaja} color={"green"} legend={"Aperturar Caja"} icon={Check} />
+            </div>
+         </form>
+      </ModalTemplate>
    );
 }
