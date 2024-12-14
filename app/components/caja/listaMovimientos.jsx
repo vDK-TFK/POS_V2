@@ -348,7 +348,160 @@ export default function ListaMovimientos({ open, onClose, cajaActual, idInfoCaja
 
   return (
     <>
-      <ModalTemplate open={open} handleClose={handleClose} onClose={onClose} title={"Movimientos de Dinero"} icon={Coins} children={modalChildren} />
+      <ModalTemplate open={open} handleClose={handleClose} onClose={onClose} title={"Movimientos de Dinero"} icon={Coins}>
+        <div style={{ maxHeight: "55vh", overflowY: "auto", overflowX: "hidden" }}>
+          {cajaActual && (
+            <div className="flex flex-col items-center">
+              <form className="my-2 flex flex-col items-center">
+                <div className={`pl-4 grid ${classResponsiveDivs} gap-4 mx-auto w-full`}>
+                  <HtmlFormSelect legend={"Movimiento"} value={formData.idTipoMovimiento} additionalClass={"fc-movimientos"} onChange={handleChange} options={options} name={"idTipoMovimiento"} />
+                  <HtmlFormInput legend={"Monto"} type={"number"} value={formData.monto} additionalClass={"fc-movimientos"} onChange={handleChange} name={"monto"} />
+                  <HtmlFormInput legend={"Comentario"} value={formData.motivo} additionalClass={"fc-movimientos"} onChange={handleChange} name={"motivo"} />
+
+
+                </div>
+                {
+                  onLoadingBtn ? (
+                    <div className="flex items-center justify-center mt-20">
+                      <ClipLoader size={30} speedMultiplier={1.5} />
+                    </div>
+                  ) : (
+                    <div className={`mt-6 pl-4 grid ${classesButtons} gap-1 justify-start items-start`}>
+                      <HtmlButton color="green" onClick={onPost_Movimiento} icon={Plus} legend="Registrar" />
+                      <HtmlButton onClick={handleClose} color="red" icon={X} legend="Cerrar" />
+                    </div>
+
+                  )
+                }
+
+
+              </form>
+            </div>
+          )}
+          {listaMovimientos.length > 0 && (
+            <div className={`grid grid-cols-1 mt-4 mx-auto`}>
+              {onLoading ? (
+                <div className="flex items-center justify-center mt-20">
+                  <ClipLoader size={30} speedMultiplier={1.5} />
+                </div>
+              ) : (
+                <div className="pt-1">
+                  <div className="relative overflow-x-auto shadow-xl rounded-lg">
+                    <div className="overflow-auto max-h-72">
+                      <table className="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400" style={{ tableLayout: "auto" }}>
+                        <thead className="text-sm text-gray-700 uppercase bg-gray-300 dark:bg-gray-700 dark:text-gray-400">
+                          <tr>
+                            <th className="px-6 py-2" style={{ minWidth: "50px", maxWidth: "70px" }}>No.</th>
+                            <th className="px-2 py-2" style={{ minWidth: "70px", maxWidth: "70px" }}>Fecha</th>
+                            <th className="px-6 py-2" style={{ minWidth: "80px", maxWidth: "100px" }}>Tipo Mov.</th>
+                            <th className="px-6 py-2" style={{ minWidth: "100px", maxWidth: "150px" }}>Monto</th>
+                            <th className="px-6 py-2" style={{ minWidth: "110px", maxWidth: "160px" }}>Acciones</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {currentMovimientos.map((item, index) =>
+                            item && (
+                              <tr key={index} className="bg-white dark:bg-gray-800">
+                                <td className="px-6 py-2" style={{ width: "5%", color: item.idEstadoMovimiento === 3 ? "red" : "black" }}>
+                                  {item.idMovimiento}
+                                </td>
+                                <td className="px-1 py-2" style={{ width: "5%" }}>
+                                  <HtmlNewLabel textSize="xs" icon={Calendar} color={item.idEstadoMovimiento === 3 ? "red" : "blue"} legend={FormatOnlyDate(item.fechaCreacion)} />
+                                </td>
+                                <td className="px-6 py-2" style={{ width: "10%", color: item.idEstadoMovimiento === 3 ? "red" : "black" }}>
+                                  {item.TipoMovimiento.nombre}
+                                </td>
+                                <td className="px-6 py-2" style={{ width: "10%", color: item.idEstadoMovimiento === 3 ? "red" : "black" }}>
+                                  ₡ {item.monto}
+                                </td>
+                                <td className="px-6 py-2" style={{ width: "10%", display: "flex", justifyContent: "space-around" }}>
+                                  {cajaActual && (
+                                    item.idEstadoMovimiento === 3 ? (
+                                      <HtmlNewLabel textSize="xs" icon={Ban} color="red" legend="NULO" />
+                                    ) : (
+                                      <>
+                                        <HtmlTableButton tooltip="Imprimir recibo movimiento" size={12} padding={2} color="teal" icon={Printer} onClick={() => { setSelectedItem(item); handlePrintClick(item); }} />
+                                        <HtmlTableButton tooltip="Anular Movimiento" size={12} padding={2} color="red" icon={Ban} onClick={() => onUpdate_Movimiento(item.idMovimiento)} />
+                                      </>
+                                    )
+                                  )}
+                                </td>
+                              </tr>
+                            )
+                          )}
+                        </tbody>
+                      </table>
+
+
+
+                    </div>
+                  </div>
+                  <nav className="flex items-center justify-between pt-4" aria-label="Table navigation">
+                    <ul className="inline-flex -space-x-px text-sm h-8">
+                      <li>
+                        <button
+                          onClick={() => paginate(paginaActual - 1)}
+                          disabled={paginaActual === 1}
+                          className={`flex items-center justify-center px-3 h-8 ${paginaActual === 1
+                            ? "cursor-not-allowed opacity-50"
+                            : "hover:bg-gray-100 dark:hover:bg-gray-700"
+                            }`}
+                        >
+                          Anterior
+                        </button>
+                      </li>
+                      {[
+                        ...Array(
+                          Math.ceil(
+                            listaMovimientos.length / registrosPorPagina
+                          )
+                        ).keys(),
+                      ].map((number) => (
+                        <li key={number + 1}>
+                          <button
+                            onClick={() => paginate(number + 1)}
+                            className={`flex items-center justify-center px-3 h-8 ${paginaActual === number + 1
+                              ? "bg-gray-300 dark:bg-gray-600"
+                              : "hover:bg-gray-100 dark:hover:bg-gray-700"
+                              }`}
+                          >
+                            {number + 1}
+                          </button>
+                        </li>
+                      ))}
+                      <li>
+                        <button
+                          onClick={() => paginate(paginaActual + 1)}
+                          disabled={
+                            paginaActual ===
+                            Math.ceil(
+                              listaMovimientos.length / registrosPorPagina
+                            )
+                          }
+                          className={`flex items-center justify-center px-3 h-8 ${paginaActual ===
+                            Math.ceil(
+                              listaMovimientos.length / registrosPorPagina
+                            )
+                            ? "cursor-not-allowed opacity-50"
+                            : "hover:bg-gray-100 dark:hover:bg-gray-700"
+                            }`}
+                        >
+                          Siguiente
+                        </button>
+                      </li>
+                    </ul>
+                  </nav>
+                </div>
+              )}
+            </div>
+          )}
+          {selectedItem && (
+            <div style={{ display: "none" }}>
+              <TicketMovimiento ref={ticketRef} item={selectedItem} />
+            </div>
+          )}
+        </div>
+      </ModalTemplate>
     </>
   );
 }
