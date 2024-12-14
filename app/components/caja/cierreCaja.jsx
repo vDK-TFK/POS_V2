@@ -92,6 +92,8 @@ export default function CierreCaja({ open, onClose, idInfoCaja, onGet_ListaInfoC
     )
 
     return (
-        <ModalTemplate open={open} onClose={onClose} icon={LockKeyholeIcon} title={"Cerrar Caja"} children={modalChildren} />
+        <ModalTemplate open={open} onClose={onClose} icon={LockKeyholeIcon} title={"Cerrar Caja"}>
+            {modalChildren}
+        </ModalTemplate>
     );
 }
