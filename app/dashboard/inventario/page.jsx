@@ -1,317 +1,253 @@
 'use client';
 
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, useCallback } from 'react';
 import * as XLSX from 'xlsx';
 import HtmlTableButton from "@/app/components/HtmlHelpers/TableButton";
 import HtmlNewLabel from "@/app/components/HtmlHelpers/Label1";
-import Agregar from "@/app/components/inventario/crearProducto";
-import Eliminar from "../../components/inventario/eliminarProducto";
-import Editar from "../../components/inventario/editar";
-import Ver from "../../components/inventario/ver";
-import FiltroMenu from "../../components/buscador/filtros";
+import AgregarProducto from "@/app/components/inventario/crearProducto";
+import EliminarProducto from "@/app/components/inventario/eliminarProducto";
+import EditarProducto from "@/app/components/inventario/editar";
+import PageContent from "@/app/components/HtmlHelpers/PageContent";
+import TablePagination from "@/app/components/HtmlHelpers/Pagination";
+import HtmlButton from "@/app/components/HtmlHelpers/Button";
 import Buscador from "../../components/buscador/buscar";
-import Estados from "../../components/inventario/estados";
-import { CirclePlus, FileUp, Pencil, Trash, Eye, ClipboardList, Package, Calendar, Filter, Contact, CheckCircle, User, Tag, IdCard, Search, Download, Plus } from "lucide-react";
+import FiltroMenu from "../../components/buscador/filtros";
+import { Plus, Download, Pencil, Trash, Calendar, Package, Tag, User, Filter } from "lucide-react";
+import { toast } from 'sonner';
 import useSWR from 'swr';
-import HtmlBreadCrumb from '@/app/components/HtmlHelpers/BreadCrumb';
-import HtmlButton from '@/app/components/HtmlHelpers/Button';
 
 const fetcher = (url) => fetch(url).then((res) => res.json());
-const itemsBreadCrumb = ["Home", "Caja"];
+const itemsBreadCrumb = ["Dashboard", "Inventario"];
 
 function getExpirationColor(fechaCaducidad) {
-  if (!fechaCaducidad) return "gray"; // Si no hay fecha de caducidad, usa gris.
+  if (!fechaCaducidad) return "gray";
 
   const hoy = new Date();
   const fecha = new Date(fechaCaducidad);
   const diferenciaDias = Math.floor((fecha - hoy) / (1000 * 60 * 60 * 24));
 
-  if (diferenciaDias > 10) {
-    return "green"; // Más de 10 días
-  } else if (diferenciaDias >= 0 && diferenciaDias <= 10) {
-    return "yellow"; // Menos de 10 días
-  } else {
-    return "red"; // Fecha pasada
-  }
+  if (diferenciaDias > 10) return "green";
+  if (diferenciaDias >= 0 && diferenciaDias <= 10) return "yellow";
+  return "red";
 }
 
 export default function Inventario() {
-  const [open, setOpen] = useState(false);
-  const [agregar, setAgregar] = useState(false);
-  const [ver, setVer] = useState(false);
-  const [editar, setEditar] = useState(false);
-  const [selectedProductoId, setSelectedProductoId] = useState(null);
+  const [onLoading, setOnLoading] = useState(true);
+  const [productos, setProductos] = useState([]);
+  const [selectedProducto, setSelectedProducto] = useState(null);
+  const [paginaActual, setPaginaActual] = useState(1);
+  const [registrosPorPagina] = useState(8); // Número de registros por página
   const [searchTerm, setSearchTerm] = useState('');
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [modalAgregar, setModalAgregar] = useState(false);
+  const [modalEditar, setModalEditar] = useState(false);
+  const [modalEliminar, setModalEliminar] = useState(false);
   const [filtros, setFiltros] = useState({
     filterCategoria: '',
     filterEstado: '',
     filterProveedor: ''
   });
+  const fetchCalled = useRef(false);
+
+  // Función para obtener la lista de inventario
+  const onGet_ListaInventario = useCallback(async () => {
+    if (fetchCalled.current) return; // Prevenir múltiples llamadas
+    fetchCalled.current = true; // Marcar que ya fue llamado
+
+    setOnLoading(true);
+    try {
+      const response = await fetch(`/api/inventario`);
+      const result = await response.json();
+      if (result.status === "success") {
+        setProductos(result.data || []);
+        toast.success("Inventario cargado exitosamente");
+      } else if (result.code === 204) {
+        toast.warning("No se encontraron registros en el inventario");
+        setProductos([]);
+      } else {
+        console.error("Error en la respuesta:", result.message);
+        toast.error("Error al obtener el inventario");
+        setProductos([]);
+      }
+    } catch (error) {
+      console.error("Error al obtener el inventario:", error);
+      toast.error("Error al conectar con el servidor");
+    } finally {
+      setOnLoading(false);
+    }
+  }, []);
 
   const filterButtonRef = useRef(null);
   const menuRef = useRef(null);
 
-  const { data, error, mutate } = useSWR(`/api/inventario`, fetcher);
+  const { data, error, mutate } = useSWR(`/api/inventario`, fetcher, {
+    onSuccess: (response) => {
+      if (response.status === "success") {
+        setProductos(response.data || []);
+      } else {
+        toast.warning("No se encontraron productos.");
+      }
+      setOnLoading(false);
+    },
+    onError: () => {
+      toast.error("Error al cargar los datos del inventario.");
+      setOnLoading(false);
+    },
+  });
+
 
   useEffect(() => {
-    if (error) {
-      console.error('Error fetching data:', error);
-    }
-  }, [error]);
+    onGet_ListaInventario();
+  }, [onGet_ListaInventario]);
 
-  const handleSearch = (term) => {
-    setSearchTerm(term);
+  const handleReload = () => {
+    fetch('/api/inventario')
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.status === 'success') {
+          setProductos(data.data || []);
+          toast.success('Productos actualizados correctamente.');
+        }
+      })
+      .catch(() => {
+        toast.error('Error al actualizar productos.');
+      });
   };
 
-  const handleFilterChange = (newFilters) => {
-    setFiltros(newFilters);
-  };
+
+  const handleSearch = (term) => setSearchTerm(term);
+  const handleFilterChange = (newFilters) => setFiltros(newFilters);
+
+  // Filtro y paginación
+  const filteredData = Array.isArray(productos)
+    ? productos.filter((producto) => {
+      const matchesSearch =
+        producto.Nombre?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        producto.ProductoID?.toString().includes(searchTerm);
+      const matchesCategoria = filtros.filterCategoria
+        ? producto.CategoriaID === Number(filtros.filterCategoria)
+        : true;
+      const matchesEstado = filtros.filterEstado
+        ? producto.Estado === filtros.filterEstado
+        : true;
+      const matchesProveedor = filtros.filterProveedor
+        ? producto.ProveedorID === Number(filtros.filterProveedor)
+        : true;
+      return matchesSearch && matchesCategoria && matchesEstado && matchesProveedor;
+    })
+    : [];
+
+  const indexOfLastProducto = paginaActual * registrosPorPagina;
+  const indexOfFirstProducto = indexOfLastProducto - registrosPorPagina;
+  const currentProductos = filteredData.slice(indexOfFirstProducto, indexOfLastProducto);
 
   const handleExport = () => {
-    if (typeof document !== 'undefined') {
-      generateExcelReport(filteredData);
+    if (!productos.length) {
+      toast.warning("No hay datos para exportar.");
+      return;
     }
+    generateExcelReport(productos);
   };
 
   const generateExcelReport = (data) => {
     const formattedData = data.map(producto => ({
       "ID Producto": producto.ProductoID,
       "Nombre": producto.Nombre,
-      "Proveedor": producto.ProveedorID,
-      "Categoría": producto.CategoriaID,
+      "Proveedor": producto.NombreProveedor || "N/A",
+      "Categoría": producto.NombreCategoria || "N/A",
       "Cantidad": producto.Stock,
       "Fecha Ingreso": producto.FechaIngreso ? new Date(producto.FechaIngreso).toLocaleDateString() : "N/A",
       "Fecha Caducidad": producto.FechaCaducidad ? new Date(producto.FechaCaducidad).toLocaleDateString() : "N/A",
       "Estado": producto.Estado
     }));
 
-    // Crear hoja de Excel
     const worksheet = XLSX.utils.json_to_sheet(formattedData);
-
-    // Estilo de los encabezados
-    const headerStyle = {
-      font: { bold: true, color: { rgb: "FFFFFF" } },
-      fill: { fgColor: { rgb: "4F81BD" } },
-      alignment: { horizontal: "center", vertical: "center" },
-      border: {
-        top: { style: "thin", color: { rgb: "000000" } },
-        bottom: { style: "thin", color: { rgb: "000000" } },
-        left: { style: "thin", color: { rgb: "000000" } },
-        right: { style: "thin", color: { rgb: "000000" } }
-      }
-    };
-
-    // Estilo para las celdas del contenido
-    const cellStyle = {
-      alignment: { horizontal: "left", vertical: "center" },
-      font: { color: { rgb: "333333" } }
-    };
-
-    // Aplicar estilos a los encabezados
-    const range = XLSX.utils.decode_range(worksheet['!ref']);
-    for (let C = range.s.c; C <= range.e.c; C++) {
-      const cellAddress = XLSX.utils.encode_cell({ r: 0, c: C });
-      if (!worksheet[cellAddress]) continue;
-      worksheet[cellAddress].s = headerStyle;
-    }
-
-    // Aplicar estilos a las celdas de contenido
-    for (let R = range.s.r + 1; R <= range.e.r; R++) {
-      for (let C = range.s.c; C <= range.e.c; C++) {
-        const cellAddress = XLSX.utils.encode_cell({ r: R, c: C });
-        if (!worksheet[cellAddress]) continue;
-        worksheet[cellAddress].s = cellStyle;
-      }
-    }
-
-    // Ajustar anchos de columna
-    const columnWidths = [
-      { wch: 15 }, // ID Producto
-      { wch: 30 }, // Nombre
-      { wch: 20 }, // Proveedor
-      { wch: 20 }, // Categoría
-      { wch: 10 }, // Cantidad
-      { wch: 15 }, // Fecha Ingreso
-      { wch: 15 }, // Fecha Caducidad
-      { wch: 12 }  // Estado
-    ];
-    worksheet['!cols'] = columnWidths;
-
-    // Crear libro de Excel
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, "Inventario");
 
-    // Generar archivo Excel
     const excelBuffer = XLSX.write(workbook, { bookType: "xlsx", type: "array" });
     const dataBlob = new Blob([excelBuffer], { type: "application/octet-stream" });
     const downloadLink = document.createElement("a");
     downloadLink.href = URL.createObjectURL(dataBlob);
-    downloadLink.download = "inventario.xlsx";
+    downloadLink.download = "Inventario.xlsx";
     downloadLink.click();
   };
 
-  const filteredData = Array.isArray(data)
-    ? data.filter(producto => (
-      producto.Nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      producto.ProductoID.toString().includes(searchTerm)) &&
-      (filtros.filterCategoria ? producto.CategoriaID === filtros.filterCategoria : true) &&
-      (filtros.filterEstado ? producto.Estado === filtros.filterEstado : true) &&
-      (filtros.filterProveedor ? producto.ProveedorID === filtros.filterProveedor : true)
-    )
-    : [];
-
-
-  useEffect(() => {
-    if (isMenuOpen) {
-      const handleClickOutside = (event) => {
-        if (menuRef.current && !menuRef.current.contains(event.target) && filterButtonRef.current && !filterButtonRef.current.contains(event.target)) {
-          setIsMenuOpen(false);
-        }
-      };
-      document.addEventListener('mousedown', handleClickOutside);
-      return () => {
-        document.removeEventListener('mousedown', handleClickOutside);
-      };
-    }
-  }, [isMenuOpen]);
-
-  useEffect(() => {
-    console.log("Datos recibidos desde la API:", data);
-  }, [data]);
-
-
-  if (error) return <div>Error al cargar los datos</div>;
-  if (!data) return <div>Cargando...</div>;
-
-  return (
+  const pageContent = (
     <>
-      <div className="w-full p-4">
-        <nav className="flex" aria-label="Breadcrumb">
-          <ol className="pl-2 inline-flex items-center space-x-1 md:space-x-2 rtl:space-x-reverse">
-            <HtmlBreadCrumb items={itemsBreadCrumb} />
-          </ol>
-        </nav>
+      {/* Controles superiores */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <Buscador onSearch={handleSearch} />
+        <HtmlButton color="blue" icon={Plus} legend="Agregar" onClick={() => setModalAgregar(true)} />
+        <HtmlButton color="green" icon={Download} legend="Exportar" onClick={handleExport} />
       </div>
 
-      <div className="w-full pl-4 pr-4">
-        <div className="block w-full p-6 bg-white border border-gray-200 rounded-lg shadow">
-          <h5 className="mb-2 text-2xl font-bold tracking-tight text-gray-900 dark:text-white">
-            Inventario
-          </h5>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 items-center">
-            {/* Buscador */}
-            <div className="col-span-1">
-              <Buscador onSearch={handleSearch} />
-            </div>
-
-            {/* Botón de filtro */}
-            <div className="ml-10 col-span-1 sm:col-span-1 md:col-span-1 flex justify-end sm:justify-start">
-              <button
-                ref={filterButtonRef}
-                onClick={() => setIsMenuOpen(!isMenuOpen)}
-                className="p-2 rounded-md bg-gray-200 dark:bg-gray-700">
-                <Filter className="text-gray-900 dark:text-gray-100" />
-              </button>
-            </div>
-
-            {/* Botones adicionales */}
-            <div className="col-span-2 sm:col-span-2 md:col-span-2 flex justify-center sm:justify-end space-x-2">
-              <HtmlButton
-                color="blue"
-                icon={Plus}
-                legend="Agregar"
-                onClick={() => setAgregar(true)}
-              />
-              <HtmlButton
-                color="green"
-                icon={Download}
-                legend="Exportar"
-                onClick={handleExport}
-              />
-            </div>
-          </div>
-
-
-          <hr className='mt-4' />
-          <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 max-h-[80vh] overflow-y-auto">
-            {filteredData.map((producto) => (
-              <div
-                key={producto.ProductoID}
-                className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-4 transition duration-300 hover:shadow-2xl"
-              >
-                <h2 className="bg-gradient-to-r from-gray-100 to-gray-300 text-center text-lg font-semibold text-gray-800 shadow-md px-5 py-2 rounded-md mb-4 hover:shadow-lg transform hover:scale-105 transition-all duration-300 ease-in-out">
-                  {producto.Nombre}
-                </h2>
-
-                <div className="flex flex-col space-y-2">
-                  <HtmlNewLabel
-                    color="blue"
-                    icon={User}
-                    legend={`Proveedor: ${producto.NombreProveedor || "N/A"}`}
-                  />
-                  <HtmlNewLabel
-                    color="blue"
-                    icon={Tag}
-                    legend={`Categoría: ${producto.NombreCategoria || "N/A"}`}
-                  />
-
-                  <HtmlNewLabel
-                    color="green"
-                    icon={Calendar}
-                    legend={`Fecha ingreso: ${new Date(producto.FechaIngreso).toLocaleDateString()}`}
-                  />
-                  <HtmlNewLabel
-                    color={getExpirationColor(producto.FechaCaducidad)}
-                    icon={Calendar}
-                    legend={`Fecha de caducidad: ${producto.FechaCaducidad ? new Date(producto.FechaCaducidad).toLocaleDateString() : 'N/A'}`}
-                  />
-                  <HtmlNewLabel
-                    color="purple"
-                    icon={Package}
-                    legend={`Cantidad: ${producto.Stock}`}
-                  />
-                </div>
-                <div className="flex gap-3 justify-center mt-4">
-                  <HtmlTableButton
-                    color="blue"
-                    tooltip="Editar Producto"
-                    icon={Pencil}
-                    onClick={() => { setSelectedProductoId(producto.ProductoID); setEditar(true); }}
-                  />
-                  <HtmlTableButton
-                    color="red"
-                    tooltip="Eliminar Producto"
-                    icon={Trash}
-                    onClick={() => { setSelectedProductoId(producto.ProductoID); setOpen(true); }}
-                  />
-                </div>
+      {/* Cards de productos */}
+      <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+        {currentProductos.map((producto) => (
+          <div
+            key={producto.ProductoID}
+            className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-4 hover:shadow-2xl flex flex-col justify-between"
+          >
+            <div>
+              <h2 className="text-center text-lg font-semibold text-gray-800 dark:text-gray-100 mb-4">
+                {producto.Nombre}
+              </h2>
+              <div className="space-y-2">
+                <HtmlNewLabel color="blue" icon={User} legend={`Proveedor: ${producto.NombreProveedor || "N/A"}`} />
+                <HtmlNewLabel color="blue" icon={Tag} legend={`Categoría: ${producto.NombreCategoria || "N/A"}`} />
+                <HtmlNewLabel
+                  color="green"
+                  icon={Calendar}
+                  legend={`Fecha ingreso: ${producto.FechaIngreso ? new Date(producto.FechaIngreso).toLocaleDateString() : "N/A"}`}
+                />
+                <HtmlNewLabel
+                  color={getExpirationColor(producto.FechaCaducidad)}
+                  icon={Calendar}
+                  legend={`Fecha caducidad: ${producto.FechaCaducidad ? new Date(producto.FechaCaducidad).toLocaleDateString() : "N/A"}`}
+                />
+                <HtmlNewLabel color="purple" icon={Package} legend={`Cantidad: ${producto.Stock}`} />
               </div>
-            ))}
+            </div>
+            <div className="flex gap-2 justify-center mt-4">
+              <HtmlTableButton
+                color="blue"
+                tooltip="Editar"
+                icon={Pencil}
+                onClick={() => {
+                  setSelectedProducto(producto);
+                  setModalEditar(true);
+                }}
+              />
+              <HtmlTableButton
+                color="red"
+                tooltip="Eliminar"
+                icon={Trash}
+                onClick={() => {
+                  setSelectedProducto(producto);
+                  setModalEliminar(true);
+                }}
+              />
+            </div>
           </div>
-
-
-        </div>
+        ))}
       </div>
-      {/* <Eliminar open={open} onClose={() => setOpen(false)} productoId={selectedProductoId} mutate={mutate} />
-      <Agregar open={agregar} onClose={() => setAgregar(false)} mutate={mutate} />
-      <Editar open={editar} onClose={() => setEditar(false)} productoId={selectedProductoId} mutate={mutate} />
-      <Ver open={ver} onClose={() => setVer(false)} productoId={selectedProductoId} /> */}
-      {isMenuOpen && (
-        <div
-          ref={menuRef}
-          style={{
-            position: 'absolute',
-            top: filterButtonRef.current ? filterButtonRef.current.getBoundingClientRect().bottom + window.scrollY - 70 : 0,
-            left: filterButtonRef.current ? filterButtonRef.current.getBoundingClientRect().left + window.scrollX + 360 : 20
-          }}
-        >
-          <FiltroMenu onFilterChange={handleFilterChange} />
-        </div>
-      )}
 
+      {/* Paginación */}
+      <TablePagination
+        listado={filteredData}
+        paginaActual={paginaActual}
+        registrosPorPagina={registrosPorPagina}
+        onSet_PaginaActual={setPaginaActual}
+      />
 
+      {/* Modales */}
+      <AgregarProducto open={modalAgregar} onClose={() => setModalAgregar(false)} onReload={handleReload} />
+      <EditarProducto open={modalEditar} productoId={selectedProducto?.ProductoID} onClose={() => setModalEditar(false)} onReload={handleReload} />
+      <EliminarProducto open={modalEliminar} productoId={selectedProducto?.ProductoID} onClose={() => setModalEliminar(false)} onReload={handleReload} />
     </>
   );
+
+
+  return <PageContent itemsBreadCrumb={itemsBreadCrumb} content={pageContent} tituloCard="Gestión de Inventario" />;
 }

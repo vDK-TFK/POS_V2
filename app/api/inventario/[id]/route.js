@@ -1,70 +1,91 @@
 import { NextResponse } from 'next/server';
-import db from '@/app/lib/db';
+import { PrismaClient } from '@prisma/client';
+
+const prisma = new PrismaClient();
 
 export async function GET(request, { params }) {
   try {
-    const producto = await db.productos.findUnique({
+    const producto = await prisma.productos.findUnique({
       where: {
-        ProductoID: Number(params.id), 
-      }
+        ProductoID: Number(params.id),
+      },
     });
 
     if (!producto) {
-      return NextResponse.json({ error: 'Producto no encontrado' }, { status: 404 });
+      return NextResponse.json(
+        { code: 404, status: 'error', message: 'Producto no encontrado' },
+        { status: 404 }
+      );
     }
 
-    return NextResponse.json(producto);
+    return NextResponse.json({
+      code: 200,
+      status: 'success',
+      data: producto,
+      message: 'Producto obtenido satisfactoriamente',
+    });
   } catch (error) {
     console.error('Error al obtener el producto:', error);
-    return NextResponse.json({ error: 'Error al obtener el producto' }, { status: 500 });
+    return NextResponse.json(
+      { code: 500, status: 'error', message: `Error al obtener el producto: ${error.message}` },
+      { status: 500 }
+    );
   }
 }
 
 export async function PUT(request, { params }) {
-  const data = await request.json();
-
   try {
-    const updateData = {
-      ...data,
-      FechaIngreso: data.FechaIngreso ? new Date(data.FechaIngreso).toISOString() : undefined,
-      FechaCaducidad: data.FechaCaducidad ? new Date(data.FechaCaducidad).toISOString() : undefined,
-    };
+    const data = await request.json();
 
-    const productoActualizado = await db.productos.update({
+    const productoActualizado = await prisma.productos.update({
       where: {
         ProductoID: Number(params.id),
       },
-      data: updateData,
+      data: {
+        ...data,
+        FechaIngreso: data.FechaIngreso ? new Date(data.FechaIngreso) : null,
+        FechaCaducidad: data.FechaCaducidad ? new Date(data.FechaCaducidad) : null,
+        IdUsuarioModificacion: data.IdUsuarioModificacion, // ID del usuario que modifica
+        FechaModificacion: new Date(), // Fecha de modificación
+      },
     });
 
-    return NextResponse.json(productoActualizado);
+    return NextResponse.json({
+      code: 200,
+      status: 'success',
+      data: productoActualizado,
+      message: 'Producto actualizado satisfactoriamente',
+    });
   } catch (error) {
     console.error('Error al actualizar el producto:', error);
-    return NextResponse.json({ error: 'Error al actualizar el producto' }, { status: 500 });
+    return NextResponse.json(
+      { code: 500, status: 'error', message: `Error al actualizar el producto: ${error.message}` },
+      { status: 500 }
+    );
   }
 }
 
 export async function DELETE(request, { params }) {
   try {
-    const producto = await db.productos.findUnique({
-      where: {
-        ProductoID: Number(params.id),
-      }
+    const productoId = Number(params.id);
+
+    // Aquí deberías realizar la actualización lógica para marcar el producto como eliminado
+    const producto = await prisma.productos.update({
+      where: { ProductoID: productoId },
+      data: { Eliminado: true },
     });
 
-    if (!producto) {
-      return NextResponse.json({ error: 'Producto no encontrado' }, { status: 404 });
-    }
-
-    const productoEliminado = await db.productos.delete({
-      where: {
-        ProductoID: Number(params.id),
-      }
-    });
-
-    return NextResponse.json(productoEliminado);
+    return new Response(JSON.stringify({
+      status: "success",
+      message: "Producto eliminado satisfactoriamente.",
+    }), { status: 200 });
   } catch (error) {
-    console.error('Error al eliminar el producto:', error);
-    return NextResponse.json({ error: 'Error al eliminar el producto' }, { status: 500 });
+    console.error("Error al eliminar el producto:", error);
+
+    return new Response(JSON.stringify({
+      status: "error",
+      message: `Error al eliminar el producto: ${error.message}`,
+    }), { status: 500 });
   }
 }
+
