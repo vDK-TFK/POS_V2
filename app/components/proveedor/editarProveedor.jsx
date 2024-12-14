@@ -226,6 +226,45 @@ export default function EditarProveedor({ open, onClose, onReload, idProveedor }
     );
 
     return (
-        <ModalTemplate title={"Editar Proveedor #" + idProveedor} icon={Pencil} open={open} onClose={onClose} children={modalChild} />
+        <ModalTemplate title={"Editar Proveedor #" + idProveedor} icon={Pencil} open={open} onClose={onClose}>
+            {onLoading ? (
+            <div className="flex items-center justify-center">
+                <ClipLoader size={30} speedMultiplier={1.5} />
+            </div>
+            ) : (
+
+            <form onSubmit={onEditProveedor} className="w-full flex flex-col h-full">
+                <div className="flex-grow w-full max-h-[48vh] overflow-y-auto p-4">
+                    <div className={`pl-4 grid ${classResponsiveDivs} gap-4 mx-auto w-full`}>
+                        <HtmlFormInput id={"txtNombre"} legend={"Nombre"} type={"text"} value={formData.nombre} additionalClass={"fc-prov-edit"} onChange={handleChange} name={"nombre"} />
+                        <HtmlFormInput id={"txtNombreContacto"} legend={"Contacto"} value={formData.nombreContacto} onChange={handleChange} additionalClass={"fc-prov-edit"} name={"nombreContacto"} />
+                    </div>
+
+                    <div className={`pl-4 grid ${classResponsiveDivs} gap-4 mx-auto w-full`}>
+                        <HtmlFormInput id={"txtTelefono-edit"} legend={"Teléfono"} type={"text"} value={formData.telefono} additionalClass={"fc-prov-edit"} onChange={handleChange} name={"telefono"} />
+                        <HtmlFormInput id={"txtCorreo-edit"} legend={"Correo"} value={formData.correo} onChange={handleChange} additionalClass={"fc-prov-edit"} name={"correo"} />
+                    </div>
+
+                    <div className={`pl-4 grid ${classResponsiveDivs2} gap-4 mx-auto w-full`}>
+                        <HtmlFormInput legend={"Sitio Web (Opcional)"} type={"text"} value={formData.web} onChange={handleChange} name={"web"} />
+                        <HtmlFormInput legend={"Dirección"} value={formData.direccion} onChange={handleChange} name={"direccion"} />
+                    </div>
+                </div>
+
+                <div className="w-full p-2 border-t border-gray-300">
+                    {onLoadingBtn ? (
+                        <div className="flex items-center justify-center">
+                            <ClipLoader size={30} speedMultiplier={1.5} />
+                        </div>
+                    ) : (
+                        <div className="flex justify-center items-center gap-4">
+                            <HtmlButton type="submit" colSize={1} color={"blue"} icon={Pencil} legend="Editar" />
+                            <HtmlButton onClick={handleClose} colSize={1} color={"red"} icon={X} legend="Cancelar" />
+                        </div>
+                    )}
+                </div>
+            </form>
+            )}
+        </ModalTemplate>
     );
 }

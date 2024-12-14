@@ -202,6 +202,30 @@ export default function EditarInventario({ open, onClose, onReload, productoId, 
   );
 
   return (
-    <ModalTemplate title="Editar Producto" icon={Pencil} open={open} onClose={handleClose} children={modalChild} />
+    <ModalTemplate title="Editar Producto" icon={Pencil} open={open} onClose={handleClose}>
+      <form onSubmit={handleSubmit} className="w-full">
+        <div className="flex-grow w-full max-h-[49vh] overflow-y-auto">
+          <HtmlFormInput legend="Nombre" type="text" value={formData.Nombre} additionalClass="fc-inv-edit" onChange={handleChange} name="Nombre" />
+          <HtmlFormInput legend="Descripción" type="text" value={formData.Descripcion} additionalClass="fc-inv-edit" onChange={handleChange} name="Descripcion" />
+          <HtmlFormSelect legend="Categoría" options={arrayCategorias} value={formData.CategoriaID} additionalClass="fc-inv-edit" onChange={handleChange} name="CategoriaID" />
+          <HtmlFormSelect legend="Proveedor" options={arrayProveedores} value={formData.ProveedorID} additionalClass="fc-inv-edit" onChange={handleChange} name="ProveedorID" />
+          <HtmlFormInput legend="Precio Compra" type="number" value={formData.PrecioCompra} additionalClass="fc-inv-edit" onChange={handleChange} name="PrecioCompra" />
+          <HtmlFormInput legend="Precio Venta" type="number" value={formData.PrecioVenta} additionalClass="fc-inv-edit" onChange={handleChange} name="PrecioVenta" />
+          <HtmlFormInput legend="Stock" type="number" value={formData.Stock} additionalClass="fc-inv-edit" onChange={handleChange} name="Stock" />
+          <HtmlFormInput legend="Fecha Ingreso" type="date" value={formData.FechaIngreso} additionalClass="fc-inv-edit" onChange={handleChange} name="FechaIngreso" />
+          <HtmlFormInput legend="Fecha Caducidad" type="date" value={formData.FechaCaducidad} additionalClass="fc-inv-edit" onChange={handleChange} name="FechaCaducidad" />
+        </div>
+        {onLoadingBtn ? (
+          <div className="flex items-center justify-center mt-20">
+            <ClipLoader size={30} speedMultiplier={1.5} />
+          </div>
+        ) : (
+          <div className="flex justify-center items-center gap-4 mt-4">
+            <HtmlButton type="submit" colSize={1} color="blue" icon={Pencil} legend="Actualizar" />
+            <HtmlButton onClick={handleClose} colSize={1} color="red" icon={X} legend="Cancelar" />
+          </div>
+        )}
+      </form>
+    </ModalTemplate>
   );
 }

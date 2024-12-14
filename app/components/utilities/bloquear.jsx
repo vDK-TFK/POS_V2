@@ -82,7 +82,30 @@ export default function ModalBloquearDesbloquear({ open, onClose, isBlock, idTyp
   const titleModal = legend + " " + entitySingular + " " + "#" + idType;
 
   return (
-    <ModalTemplate children={modalChild} open={open} onClose={onClose} icon={Pencil} title={titleModal} />
+    <ModalTemplate open={open} onClose={onClose} icon={Pencil} title={titleModal}>
+      <>
+        <p className="text-md text-gray-800 dark:text-gray-100">
+          ¿Está seguro que desea {legend.toLowerCase()} el {entitySingular}?
+        </p>
+        <form className="my-2 w-full flex flex-col items-center">
+          <div className="w-full">
+            {
+              onLoading ? (
+                <div className="flex items-center justify-center mt-20">
+                  <ClipLoader size={30} speedMultiplier={1.5} />
+                </div>
+              ) : (
+                <div className="flex justify-center items-center gap-4 mt-4">
+                  <HtmlButton onClick={actionToExecute} color={"green"} legend={legend} icon={Check} />
+                  <HtmlButton onClick={onClose} color={"red"} legend={"Cancelar"} icon={X} />
+                </div>
+              )
+            }
+          </div>
+
+        </form>
+      </>
+    </ModalTemplate>
   )
 
  
