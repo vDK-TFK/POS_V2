@@ -1,8 +1,14 @@
 import { useState, useEffect } from 'react';
-import { X } from "lucide-react";
-import { Toaster, toast } from 'sonner';
+import { Plus, X } from "lucide-react";
+import { toast } from 'sonner';
+import ModalTemplate from '../HtmlHelpers/ModalTemplate';
+import HtmlFormInput from '../HtmlHelpers/FormInput';
+import HtmlFormSelect from '../HtmlHelpers/FormSelect';
+import HtmlButton from '../HtmlHelpers/Button';
+import { ValidateFormByClass, RemoveValidationClasses } from '@/app/api/utils/js-helpers';
+import { ClipLoader } from 'react-spinners';
 
-export default function Agregar({ open, onClose, mutate }) {
+export default function CrearProducto({ open, onClose, onReload, userId }) { // Agregar userId
   const [formData, setFormData] = useState({
     Nombre: '',
     Descripcion: '',
@@ -13,39 +19,82 @@ export default function Agregar({ open, onClose, mutate }) {
     ProveedorID: '',
     FechaIngreso: '',
     FechaCaducidad: '',
-    Estado: 'Vigente'
+    Estado: 'Activo', // Estado por defecto
   });
+
   const [categorias, setCategorias] = useState([]);
   const [proveedores, setProveedores] = useState([]);
+  const [onLoadingBtn, setOnLoadingBtn] = useState(false);
+  const classResponsiveDivs = "xs:grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-2";
 
   useEffect(() => {
-    fetch(`/api/categorias`)
-      .then(response => response.json())
-      .then(data => setCategorias(data))
-      .catch(error => console.error('Error fetching categorias:', error));
+    if (open) {
+      fetchCategorias();
+      fetchProveedores();
+    }
+  }, [open]);
 
-    fetch(`/api/proveedor`)
-      .then(response => response.json())
-      .then(data => setProveedores(data))
-      .catch(error => console.error('Error fetching proveedores:', error));
-  }, []);
+  const fetchCategorias = async () => {
+    try {
+      const response = await fetch('/api/categorias');
+      if (!response.ok) throw new Error('Error al obtener las categorías');
+      const data = await response.json();
+      setCategorias(data.data || []);
+    } catch (error) {
+      toast.error('Error al cargar las categorías');
+    }
+  };
+
+  const fetchProveedores = async () => {
+    try {
+      const response = await fetch('/api/proveedor');
+      if (!response.ok) throw new Error('Error al obtener los proveedores');
+      const data = await response.json();
+      setProveedores(data.data || []);
+    } catch (error) {
+      toast.error('Error al cargar los proveedores');
+    }
+  };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prevData) => ({
       ...prevData,
-      [name]: value
+      [name]: value,
     }));
+  };
+
+  const handleClose = () => {
+    setFormData({
+      Nombre: '',
+      Descripcion: '',
+      PrecioCompra: '',
+      PrecioVenta: '',
+      Stock: '',
+      CategoriaID: '',
+      ProveedorID: '',
+      FechaIngreso: '',
+      FechaCaducidad: '',
+      Estado: 'Activo',
+    });
+    RemoveValidationClasses('fc-prod-create');
+    onClose();
   };
 
   const handleAgregar = async (e) => {
     e.preventDefault();
+
+    const isValid = ValidateFormByClass('fc-prod-create');
+    if (!isValid) {
+      toast.warning('Aún existen campos por completar');
+      return;
+    }
+
+    setOnLoadingBtn(true);
     try {
       const response = await fetch(`/api/inventario`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           ...formData,
           PrecioCompra: parseFloat(formData.PrecioCompra),
@@ -53,91 +102,85 @@ export default function Agregar({ open, onClose, mutate }) {
           Stock: parseInt(formData.Stock),
           CategoriaID: parseInt(formData.CategoriaID),
           ProveedorID: parseInt(formData.ProveedorID),
+          IdUsuarioCreacion: userId, // Incluye el usuario que creó el producto
         }),
       });
 
-      if (response.ok) {
-        toast.success('Producto agregado con éxito');
-        mutate();  // Refresca los datos
-        setTimeout(() => {
-          onClose();
-        }, 1500);
+      const data = await response.json();
+
+      if (data.status === 'success') {
+        toast.success(data.message);
+        if (onReload) onReload();
+        handleClose();
       } else {
-        toast.error('Error al agregar el producto');
+        toast.error(data.message);
       }
     } catch (error) {
-      toast.error('Error al conectar con el servidor');
+      toast.error('Error al registrar el producto');
+    } finally {
+      setOnLoadingBtn(false);
     }
   };
 
-  return (
-    <div onClick={onClose} className={`fixed inset-0 flex justify-center items-center transition-opacity ${open ? "visible bg-black bg-opacity-20 dark:bg-opacity-30" : "invisible"}`}>
-      <div onClick={(e) => e.stopPropagation()} className={`bg-white dark:bg-gray-800 rounded-xl shadow p-6 transition-all ${open ? "scale-100 opacity-100" : "scale-125 opacity-0"} m-auto`}>
-        <button onClick={onClose} className="absolute top-2 right-2 p-1 rounded-lg text-gray-400 hover:bg-gray-50 hover:text-gray-600 dark:hover:bg-gray-700 dark:hover:text-gray-300">
-          <X size={18} strokeWidth={2} />
-        </button>
-        <div className="flex flex-col items-center">
-          <h2 className="text-xl font-bold flex items-center gap-3 text-gray-900 dark:text-gray-100 my-4">
-            Agregar Producto
-          </h2>
-          <hr className="w-full border-t border-gray-300 dark:border-gray-600"></hr>
-          <form onSubmit={handleAgregar} className="ml-5 my-4 w-full">
-            <div className="grid mr-5 gap-x-12 grid-cols-2">
-              <div className="mb-4">
-                <label htmlFor="Nombre" className="block text-sm font-medium text-gray-700 dark:text-gray-200">Nombre</label>
-                <input required type="text" id="Nombre" name="Nombre" value={formData.Nombre} onChange={handleChange} className="mt-1 p-2 w-full border rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" />
-              </div>
-              <div className="mb-4">
-                <label htmlFor="Descripcion" className="block text-sm font-medium text-gray-700 dark:text-gray-200">Descripción</label>
-                <input required type="text" id="Descripcion" name="Descripcion" value={formData.Descripcion} onChange={handleChange} className="mt-1 p-2 w-full border rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" />
-              </div>
-              <div className="mb-4">
-                <label htmlFor="PrecioCompra" className="block text-sm font-medium text-gray-700 dark:text-gray-200">Precio de Compra</label>
-                <input required type="number" step="0.01" id="PrecioCompra" name="PrecioCompra" value={formData.PrecioCompra} onChange={handleChange} className="mt-1 p-2 w-full border rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" />
-              </div>
-              <div className="mb-4">
-                <label htmlFor="PrecioVenta" className="block text-sm font-medium text-gray-700 dark:text-gray-200">Precio de Venta</label>
-                <input required type="number" step="0.01" id="PrecioVenta" name="PrecioVenta" value={formData.PrecioVenta} onChange={handleChange} className="mt-1 p-2 w-full border rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" />
-              </div>
-              <div className="mb-4">
-                <label htmlFor="Stock" className="block text-sm font-medium text-gray-700 dark:text-gray-200">Stock</label>
-                <input required type="number" id="Stock" name="Stock" value={formData.Stock} onChange={handleChange} className="mt-1 p-2 w-full border rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" />
-              </div>
-              <div className="mb-4">
-                <label htmlFor="CategoriaID" className="block text-sm font-medium text-gray-700 dark:text-gray-200">Categoría</label>
-                <select required id="CategoriaID" name="CategoriaID" value={formData.CategoriaID} onChange={handleChange} className="mt-1 p-2 w-full border rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
-                  <option value="">Selecciona una categoría</option>
-                  {categorias.map((categoria) => (
-                    <option key={categoria.CategoriaProductoID} value={categoria.CategoriaProductoID}>{categoria.NombreCategoria}</option>
-                  ))}
-                </select>
-              </div>
-              <div className="mb-4">
-                <label htmlFor="ProveedorID" className="block text-sm font-medium text-gray-700 dark:text-gray-200">Proveedor</label>
-                <select required id="ProveedorID" name="ProveedorID" value={formData.ProveedorID} onChange={handleChange} className="mt-1 p-2 w-full border rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
-                  <option value="">Selecciona un proveedor</option>
-                  {proveedores.map((proveedor) => (
-                    <option key={proveedor.ProveedorID} value={proveedor.ProveedorID}>{proveedor.Nombre}</option>
-                  ))}
-                </select>
-              </div>
-              <div className="mb-4">
-                <label htmlFor="FechaIngreso" className="block text-sm font-medium text-gray-700 dark:text-gray-200">Fecha de Ingreso</label>
-                <input required type="date" id="FechaIngreso" name="FechaIngreso" value={formData.FechaIngreso} onChange={handleChange} className="mt-1 p-2 w-full border rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" />
-              </div>
-              <div className="mb-4">
-                <label htmlFor="FechaCaducidad" className="block text-sm font-medium text-gray-700 dark:text-gray-200">Fecha de Caducidad</label>
-                <input type="date" id="FechaCaducidad" name="FechaCaducidad" value={formData.FechaCaducidad} onChange={handleChange} className="mt-1 p-2 w-full border rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" />
-              </div>
-            </div>
-            <div className="flex justify-end gap-4 mr-5">
-              <button type="submit" className="bg-green-500 font-semibold rounded-md py-2 px-6 text-white">Agregar</button>
-              <button type="button" className="bg-gray-400 font-semibold rounded-md py-2 px-6" onClick={onClose}>Cancelar</button>
-            </div>
-          </form>
-        </div>
+  const arrayProveedores = proveedores.map((p) => ({
+    value: p.ProveedorID,
+    label: p.Nombre,
+  }));
+
+  const arrayCategorias = categorias.map((c) => ({
+    value: c.CategoriaProductoID,
+    label: c.NombreCategoria,
+  }));
+
+  const modalChildren = (
+    <form onSubmit={handleAgregar} className="w-full">
+      <div className={`grid grid-cols-1 gap-4 mx-auto`}>
+        <HtmlFormInput legend="Nombre" value={formData.Nombre} type="text" additionalClass="fc-prod-create" onChange={handleChange} name="Nombre" />
       </div>
-      <Toaster richColors />
-    </div>
+      <div className={`grid grid-cols-1 gap-4 mx-auto`}>
+        <HtmlFormInput legend="Descripción" value={formData.Descripcion} type="text" additionalClass="fc-prod-create" onChange={handleChange} name="Descripcion" />
+      </div>
+      <div className={`grid grid-cols-1 gap-4 mx-auto`}>
+        <HtmlFormSelect
+          options={arrayProveedores}
+          legend="Proveedor"
+          value={formData.ProveedorID}
+          additionalClass="fc-prod-create"
+          onChange={handleChange}
+          name="ProveedorID"
+        />
+      </div>
+      <div className={`grid ${classResponsiveDivs} gap-4 mx-auto`}>
+        <HtmlFormInput legend="Precio Compra" value={formData.PrecioCompra} type="number" additionalClass="fc-prod-create" onChange={handleChange} name="PrecioCompra" />
+        <HtmlFormInput legend="Precio Venta" value={formData.PrecioVenta} type="number" additionalClass="fc-prod-create" onChange={handleChange} name="PrecioVenta" />
+      </div>
+      <div className={`grid ${classResponsiveDivs} gap-4 mx-auto`}>
+        <HtmlFormInput legend="Stock" value={formData.Stock} type="number" additionalClass="fc-prod-create" onChange={handleChange} name="Stock" />
+        <HtmlFormSelect
+          legend="Categoría"
+          options={arrayCategorias}
+          value={formData.CategoriaID}
+          additionalClass="fc-inv-create"
+          onChange={handleChange}
+          name="CategoriaID"
+        />
+      </div>
+      <div className={`grid ${classResponsiveDivs} gap-4 mx-auto`}>
+        <HtmlFormInput legend="Fecha Ingreso" value={formData.FechaIngreso} type="date" additionalClass="fc-prod-create" onChange={handleChange} name="FechaIngreso" />
+        <HtmlFormInput legend="Fecha Caducidad" value={formData.FechaCaducidad} type="date" additionalClass="fc-prod-create" onChange={handleChange} name="FechaCaducidad" />
+      </div>
+      {onLoadingBtn ? (
+        <div className="flex items-center justify-center mt-20">
+          <ClipLoader size={30} speedMultiplier={1.5} />
+        </div>
+      ) : (
+        <div className="flex justify-center items-center gap-4 mt-4">
+          <HtmlButton type="submit" colSize={1} color="green" icon={Plus} legend="Agregar" />
+          <HtmlButton onClick={handleClose} colSize={1} color="red" icon={X} legend="Cancelar" />
+        </div>
+      )}
+    </form>
   );
+
+  return <ModalTemplate open={open} onClose={handleClose} icon={Plus} title="Agregar Producto" children={modalChildren} />;
 }

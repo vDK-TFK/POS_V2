@@ -1,6 +1,5 @@
-'use client';
-
-import { FormatOnlyDate, GetValueById } from "@/app/api/utils/js-helpers";
+"use client"
+import { FormatCurrency, FormatOnlyDate, GetValueById } from "@/app/api/utils/js-helpers";
 import AnularPagarFactura from "@/app/components/facturas/AnularPagarFactura";
 import CardFactura from "@/app/components/facturas/CardFactura";
 import DetallesFactura from "@/app/components/facturas/DetallesFactura";
@@ -8,7 +7,8 @@ import HtmlBreadCrumb from "@/app/components/HtmlHelpers/BreadCrumb";
 import HtmlButton from "@/app/components/HtmlHelpers/Button";
 import HtmlFormInput from "@/app/components/HtmlHelpers/FormInput";
 import HtmlFormSelect from "@/app/components/HtmlHelpers/FormSelect";
-import { Search } from "lucide-react";
+import { Search, Download } from "lucide-react";
+import * as XLSX from "xlsx";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { ClipLoader } from "react-spinners";
 import { toast } from "sonner";
@@ -25,7 +25,7 @@ export default function ListaFacturas() {
   const [openAnularPagar, onModal_OpenAnularPagar] = useState(false);
   const [idFactura, onSet_IdFactura] = useState(0);
   const [action, onSet_Action] = useState("");
-  
+
   //Medios Pago
   const listaMediosPago = [
     { IdMedioPago: 1, Nombre: "Efectivo" },
@@ -64,25 +64,17 @@ export default function ListaFacturas() {
     fechaFinal: formatDateToLocalString(new Date()),
   });
 
-
-
   const handleChange = (e) => {
     const { name, value } = e.target;
-
-    // Solo cambiar las fechas
     if (name === "fechaInicial" || name === "fechaFinal") {
       setFormData((prev) => ({
         ...prev,
         [name]: value
       }));
-    }
-    else{
+    } else {
       setFormData((prev) => ({ ...prev, [name]: value }));
-    } 
-
+    }
   };
-
-
 
   const onSearch_InfoEmpresa = useCallback(async () => {
     try {
@@ -105,13 +97,7 @@ export default function ListaFacturas() {
     onSet_onLoading(true);
     try {
       const fechaInicio = new Date(`${formData.fechaInicial}T00:00:00Z`);
-
-      const fechaFin = new Date(`${formData.fechaFinal}T00:00:00Z`);
-      
-      fechaFin.setUTCHours(23);
-      fechaFin.setUTCMinutes(59);
-      fechaFin.setUTCSeconds(59);
-      fechaFin.setUTCHours(fechaFin.getUTCHours() + 6);
+      const fechaFin = new Date(`${formData.fechaFinal}T23:59:59Z`);
 
       let model = {
         fechaInicial: fechaInicio.toISOString(),
@@ -119,7 +105,6 @@ export default function ListaFacturas() {
         estadoFac: GetValueById("estado"),
         idMedioPago: GetValueById("medioPago")
       };
-
 
       const response = await fetch('/api/factura', {
         method: 'POST',
@@ -132,27 +117,20 @@ export default function ListaFacturas() {
       if (result.status === "success") {
         onSet_ListaFacturas(result.data);
         toast.success("Se ha obtenido la información");
-      } 
-      else if (result.code === 204) {
+      } else if (result.code === 204) {
         toast.warning(result.message);
         onSet_ListaFacturas([]);
-      } 
-      else {
+      } else {
         onSet_ListaFacturas([]);
-        console.log("Error al obtener la info: " + result.message);
         toast.error("Sucedió un error al obtener las facturas");
       }
-    } 
-    catch (error) {
+    } catch (error) {
       console.log("Error al obtener las facturas: " + error);
       toast.error("Sucedió un error al obtener las facturas: " + error);
-    } 
-    finally {
+    } finally {
       onSet_onLoading(false);
     }
   }, [formData.fechaInicial, formData.fechaFinal]);
-
-
 
   const onView_ListaDetalles = (docJson) => {
     onSet_JsonFactura(docJson);
@@ -163,6 +141,79 @@ export default function ListaFacturas() {
     onSet_Action(accion);
     onSet_IdFactura(idFactura);
     onModal_OpenAnularPagar(true);
+  };
+
+  const onExport_Facturas = () => {
+    if (listaFacturas.length === 0) {
+      toast.warning("No hay datos para exportar.");
+      return;
+    }
+
+    const formattedData = listaFacturas.map(factura => ({
+      "ID Factura": factura.idFactura.toString().padStart(6, '0'),
+      "Cliente": factura.nombreCliente || "N/A",
+      "Fecha Emisión": factura.fechaEmision,
+      "Estado": factura.estadoFac,
+      "Medio de Pago": factura.medioPago,
+      "Total": `₡ ${factura.total}`,
+    }));
+
+    // Crear hoja de Excel
+    const worksheet = XLSX.utils.json_to_sheet(formattedData);
+
+    // Estilo para el encabezado
+    const headerStyle = {
+      font: { bold: true, color: { rgb: "FFFFFF" } },
+      fill: { fgColor: { rgb: "4F81BD" } },
+      alignment: { horizontal: "center", vertical: "center" },
+      border: {
+        top: { style: "thin", color: { rgb: "000000" } },
+        bottom: { style: "thin", color: { rgb: "000000" } },
+        left: { style: "thin", color: { rgb: "000000" } },
+        right: { style: "thin", color: { rgb: "000000" } }
+      }
+    };
+
+    // Aplicar estilo a los encabezados
+    const range = XLSX.utils.decode_range(worksheet['!ref']);
+    for (let C = range.s.c; C <= range.e.c; C++) {
+      const cellAddress = XLSX.utils.encode_cell({ r: 0, c: C });
+      if (!worksheet[cellAddress]) continue;
+      worksheet[cellAddress].s = headerStyle;
+    }
+
+    // Estilo para las celdas del contenido
+    const cellStyle = {
+      alignment: { horizontal: "left", vertical: "center" },
+      font: { color: { rgb: "333333" } }
+    };
+
+    for (let R = range.s.r + 1; R <= range.e.r; R++) {
+      for (let C = range.s.c; C <= range.e.c; C++) {
+        const cellAddress = XLSX.utils.encode_cell({ r: R, c: C });
+        if (!worksheet[cellAddress]) continue;
+        worksheet[cellAddress].s = cellStyle;
+      }
+    }
+
+    // Configurar anchos de columna
+    const columnWidths = [
+      { wch: 12 }, // ID Factura
+      { wch: 25 }, // Cliente
+      { wch: 20 }, // Fecha Emisión
+      { wch: 15 }, // Estado
+      { wch: 20 }, // Medio de Pago
+      { wch: 15 }  // Total
+    ];
+    worksheet['!cols'] = columnWidths;
+
+    // Crear libro de Excel y hoja
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Facturas Filtradas");
+
+    // Generar archivo Excel
+    XLSX.writeFile(workbook, "FacturasFiltradas.xlsx");
+    toast.success("Archivo exportado con éxito.");
   };
 
   const onSearch_ListaFacturas = () => {
@@ -187,8 +238,6 @@ export default function ListaFacturas() {
     }
   }, [onSearch_Facturas, onSearch_InfoEmpresa]);
 
-
-
   return (
     <>
       <div className="w-full p-4">
@@ -204,55 +253,48 @@ export default function ListaFacturas() {
           <h5 className="mb-2 text-2xl font-bold tracking-tight text-gray-900 dark:text-white">
             Listado de facturas
           </h5>
-          <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mx-0">
-            <HtmlFormInput legend={"Fecha Inicial"} type={"date"} colSize={1} onChange={(e) => {handleChange(e)}} value={formData.fechaInicial} name={"fechaInicial"}/>
-            <HtmlFormInput legend={"Fecha Final"} type={"date"} colSize={1} onChange={(e) => { handleChange(e) }} value={formData.fechaFinal} name={"fechaFinal"} />
+          <div className="grid grid-cols-1 md:grid-cols-6 gap-4 mx-0">
+            <HtmlFormInput legend={"Fecha Inicial"} type={"date"} colSize={1} onChange={handleChange} value={formData.fechaInicial} name={"fechaInicial"} />
+            <HtmlFormInput legend={"Fecha Final"} type={"date"} colSize={1} onChange={handleChange} value={formData.fechaFinal} name={"fechaFinal"} />
             <HtmlFormSelect legend={"Estado Factura"} options={estadosFactura} colSize={1} id={"estado"} />
-            <HtmlFormSelect legend={"Medio de Pago"} options={mediosPago} colSize={1}  id={"medioPago"} />
-            <div className="mt-7">
+            <HtmlFormSelect legend={"Medio de Pago"} options={mediosPago} colSize={1} id={"medioPago"} />
+            <div className="mt-7 flex gap-4">
               <HtmlButton color={"blue"} icon={Search} legend={"Buscar"} onClick={onSearch_ListaFacturas} />
-
+              <HtmlButton color={"green"} icon={Download} legend={"Exportar"} onClick={onExport_Facturas} />
             </div>
           </div>
           <hr className="mt-4 mb-4" />
-          {
-            onLoading ? (
-              <div className="flex items-center justify-center m-4">
-                <ClipLoader size={30} speedMultiplier={1.5} />
-              </div>
-            ) : (
-                <div style={{ maxHeight: '19rem', overflowY: 'auto' }} className="grid grid-cols-1 md:grid-cols-3 gap-2 mx-0">
-                  {listaFacturas.length === 0 ? (
-                    <div className="col-span-3 text-center">
-                      <div className="alert alert-warning" role="alert">
-                        No se encontraron registros
-                      </div>
-                    </div>
-                  ) : (
-                    listaFacturas.map((item, index) => (
-                      <div className="col-span-1" key={index}>
-                        <CardFactura
-                          factura={item}
-                          infoEmpresa={infoEmpresa}
-                          vistaDetalles={onView_ListaDetalles}
-                          accion={onAction_AnularPagar}
-                          idFactura={idFactura}
-                        />
-                      </div>
-                    ))
-                  )}
+          {onLoading ? (
+            <div className="flex items-center justify-center m-4">
+              <ClipLoader size={30} speedMultiplier={1.5} />
+            </div>
+          ) : (
+            <div style={{ maxHeight: '19rem', overflowY: 'auto' }} className="grid grid-cols-1 md:grid-cols-3 gap-2 mx-0">
+              {listaFacturas.length === 0 ? (
+                <div className="col-span-3 text-center">
+                  <div className="alert alert-warning" role="alert">
+                    No se encontraron registros
+                  </div>
                 </div>
-
-
-            )
-          }
-          
+              ) : (
+                listaFacturas.map((item, index) => (
+                  <div className="col-span-1" key={index}>
+                    <CardFactura
+                      factura={item}
+                      infoEmpresa={infoEmpresa}
+                      vistaDetalles={onView_ListaDetalles}
+                      accion={onAction_AnularPagar}
+                      idFactura={idFactura}
+                    />
+                  </div>
+                ))
+              )}
+            </div>
+          )}
         </div>
       </div>
-      <DetallesFactura open={openDetalles} onClose={() => { onModal_OpenDetalles(false) }} factura={jsonFactura}/>
-      <AnularPagarFactura open={openAnularPagar} onClose={() => { onModal_OpenAnularPagar(false) }} idFactura={idFactura} action={action} onReload={onSearch_Facturas} />
-
-
+      <DetallesFactura open={openDetalles} onClose={() => onModal_OpenDetalles(false)} factura={jsonFactura} />
+      <AnularPagarFactura open={openAnularPagar} onClose={() => onModal_OpenAnularPagar(false)} idFactura={idFactura} action={action} onReload={onSearch_Facturas} />
     </>
   );
- }
+}

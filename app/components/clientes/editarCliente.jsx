@@ -7,11 +7,15 @@ import { useCallback, useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import { RemoveValidationClasses, ValidateFormByClass } from "@/app/api/utils/js-helpers";
 import HtmlButton from "../HtmlHelpers/Button";
+import ModalTemplate from "../HtmlHelpers/ModalTemplate";
 
 export default function EditarCliente({ open, onClose, idCliente, onGet_ListaClientes }) {
   //Variables
-  const [onLoading, onSet_Loading] = useState(false);
-  const [onLoadingGet, onSet_onLoading] = useState(false);
+  const [onLoadingBtn, onSet_Loading] = useState(false);
+  const [onLoadingGet, onSet_onLoading] = useState(true);
+  const classResponsiveDivs = "sm:grid-cols-1 md:grid-cols-1 lg:grid-cols-1 xl:grid-cols-1";
+  const classResponsiveDivs2 = "sm:grid-cols-1 md:grid-cols-1 lg:grid-cols-2 xl:grid-cols-2";
+
 
 
   //Sesion
@@ -29,9 +33,9 @@ export default function EditarCliente({ open, onClose, idCliente, onGet_ListaCli
   const handleChange = (e) => {
     const { name, value } = e.target;
 
-    if ((name === "telefono" || name === "celular") && !/^[\d-]*$/.test(value)) {      
+    if ((name === "telefono" || name === "celular") && !/^[\d-]*$/.test(value)) {
       toast.info('Solo se permiten números y separaciones por guión (-)');
-      return; 
+      return;
     }
 
 
@@ -46,7 +50,7 @@ export default function EditarCliente({ open, onClose, idCliente, onGet_ListaCli
       direccion: ""
     });
 
-    RemoveValidationClasses("fc-cliente-edit");
+    RemoveValidationClasses("fc-cliente-edit-edit");
     onClose()
   };
 
@@ -54,7 +58,7 @@ export default function EditarCliente({ open, onClose, idCliente, onGet_ListaCli
   const onUpdate_Cliente = (e) => {
     e.preventDefault();
 
-    const isValid = ValidateFormByClass("fc-cliente-edit");
+    const isValid = ValidateFormByClass("fc-cliente-edit-edit");
 
     if (!isValid) {
       toast.warning('Aún existen campos por completar');
@@ -71,7 +75,7 @@ export default function EditarCliente({ open, onClose, idCliente, onGet_ListaCli
     onSet_Loading(true);
 
     let model = {
-      idCliente:Number(idCliente),
+      idCliente: Number(idCliente),
       nombre: formData.nombre,
       celular: formData.celular,
       telefono: formData.telefono,
@@ -90,7 +94,10 @@ export default function EditarCliente({ open, onClose, idCliente, onGet_ListaCli
 
       if (data.status == "success") {
         toast.success(data.message)
-        onGet_ListaClientes();
+        if(onGet_ListaClientes){
+          onGet_ListaClientes();
+        }
+
         handleClose();
       }
       else {
@@ -123,10 +130,10 @@ export default function EditarCliente({ open, onClose, idCliente, onGet_ListaCli
         if (result.status === "success") {
           toast.success('Se ha obtenido el cliente');
           setFormData({
-            nombre:result.data.nombreCompleto,
-            telefono:result.data.telefono,
-            celular:result.data.celular,
-            direccion:result.data.direccion,
+            nombre: result.data.nombreCompleto,
+            telefono: result.data.telefono,
+            celular: result.data.celular,
+            direccion: result.data.direccion,
           });
 
 
@@ -159,63 +166,46 @@ export default function EditarCliente({ open, onClose, idCliente, onGet_ListaCli
     }
   }, [open, onGetClienteById]);
 
-  return (
-    <div
-      className={`fixed inset-0 flex justify-center items-center transition-opacity ${open ? "visible bg-black bg-opacity-40 dark:bg-opacity-50" : "invisible"}`}
-    >
-      <div className={`bg-white dark:bg-gray-800 rounded-lg shadow-lg p-8 transition-all ${open ? "scale-100 opacity-100" : "scale-90 opacity-0"} m-auto max-w-3xl w-full md:w-2/3 lg:w-7/12`}>
-        {onLoading ? (
-          <div className="flex items-center justify-center m-1">
-            <ClipLoader size={10} speedMultiplier={1.5} />
+  const modalChild = (
+    <form onSubmit={onUpdate_Cliente} className="w-full">
+      {onLoadingGet ? (
+        <div className="flex items-center justify-center mt-20">
+          <ClipLoader size={30} speedMultiplier={1.5} />
+        </div>
+      ) : (
+        <div className="flex-grow w-full max-h-[49vh] overflow-y-auto">
+          <div className={`pl-4 grid ${classResponsiveDivs} gap-4 mx-auto w-full`}>
+            <HtmlFormInput legend="Nombre" value={formData.nombre} type="text" colSize={1} onChange={handleChange} name="nombre" additionalClass="fc-cliente-edit" />
+          </div>
+          <div className={`pl-4 grid ${classResponsiveDivs2} gap-4 mx-auto w-full`}>
+            <HtmlFormInput legend="Teléfono" value={formData.telefono} type="text" colSize={1} additionalClass="fc-cliente-edit" name="telefono" onChange={handleChange} maxLength={15} />
+            <HtmlFormInput legend="Celular" value={formData.celular} type="text" colSize={1} name="celular" onChange={handleChange} maxLength={15} />
+          </div>
+          <div className={`pl-4 grid ${classResponsiveDivs} gap-4 mx-auto w-full`}>
+            <HtmlTextArea legend="Dirección" value={formData.direccion} colSize={1} name="direccion" onChange={handleChange} />
+          </div>
+        </div>
+      )}
+      <div className="w-full p-2 border-t border-gray-300">
+        {onLoadingBtn ? (
+          <div className="flex items-center justify-center mt-20">
+            <ClipLoader size={30} speedMultiplier={1.5} />
           </div>
         ) : (
-          <>
-            <button onClick={handleClose} className="absolute top-4 right-4 p-2 rounded-lg text-gray-400 hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-gray-700 dark:hover:text-gray-300">
-              <X size={20} strokeWidth={2} />
-            </button>
-          </>
+          <div className="flex justify-center items-center gap-4 mt-4">
+            <HtmlButton type="submit" legend="Editar" color="blue" icon={Plus} />
+            <HtmlButton type="button" legend="Cancelar" color="red" icon={X} onClick={handleClose} />
+          </div>
         )}
-
-
-        <div className="flex flex-col items-center">
-          <h2 className="text-2xl font-bold flex items-center gap-3 text-gray-900 dark:text-gray-100">
-            Editar Cliente #{idCliente}
-          </h2>
-          <hr className="w-full border-t border-gray-600 dark:border-gray-500 mt-2"></hr>
-          {onLoadingGet ? (
-            <div className="flex items-center justify-center m-1">
-              <ClipLoader size={30} speedMultiplier={1.5} />
-            </div>
-          ) : (
-            <>
-          <form method="PUT" className="my-6 w-full" onSubmit={onUpdate_Cliente}>
-            <div className="grid grid-cols-1 md:grid-cols-1 gap-4 mx-auto">
-              <HtmlFormInput legend={"Nombre"} value={formData.nombre} type={"text"} colSize={1} onChange={handleChange} name={"nombre"} additionalClass={"fc-cliente-edit"} />
-            </div>
-            <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4 mx-auto">
-              <HtmlFormInput legend={"Teléfono"} value={formData.telefono} type={"text"} colSize={1} additionalClass={"fc-cliente-edit"} name={"telefono"} onChange={handleChange} maxLength={15} />
-              <HtmlFormInput legend={"Celular"} value={formData.celular} type={"text"} colSize={1} name={"celular"} onChange={handleChange} maxLength={15} />
-            </div>
-            <div className="mt-4 grid grid-cols-1 md:grid-cols-1 gap-4 mx-auto">
-              <HtmlTextArea legend={"Dirección"} value={formData.direccion} colSize={1} name={"direccion"} onChange={handleChange} />
-            </div>
-            <div className="flex justify-center gap-6 mt-5">
-              {onLoading ? (
-                <div className="flex items-center justify-center m-1">
-                  <ClipLoader size={30} speedMultiplier={1.5} />
-                </div>
-              ) : (
-                <>
-                  <HtmlButton type="submit" legend={"Editar"} color={"blue"} icon={Pencil} />
-                  <HtmlButton type="button" legend={"Cancelar"} color={"gray"} icon={X} onClick={handleClose} />
-                </>
-              )}
-            </div>
-          </form>
-          </>
-          )}
-        </div>
       </div>
-    </div>
+    </form>
   );
+
+
+
+  return (
+    <ModalTemplate children={modalChild} onClose={onClose} icon={Pencil} open={open} title={"Editar Cliente #" + idCliente} />
+  )
+
+
 }
