@@ -191,7 +191,8 @@ export default function CrearProducto({ open, onClose, onReload, userId }) { // 
         <div className={`grid grid-cols-1 gap-4 mx-auto`}>
           <HtmlFormInput legend="Descripción" value={formData.Descripcion} type="text" additionalClass="fc-prod-create" onChange={handleChange} name="Descripcion" />
         </div>
-        <div className={`grid grid-cols-1 gap-4 mx-auto`}>
+  
+        <div className={`grid ${classResponsiveDivs} gap-4 mx-auto`}>
           <HtmlFormSelect
             options={arrayProveedores}
             legend="Proveedor"
@@ -200,10 +201,8 @@ export default function CrearProducto({ open, onClose, onReload, userId }) { // 
             onChange={handleChange}
             name="ProveedorID"
           />
-        </div>
-        <div className={`grid ${classResponsiveDivs} gap-4 mx-auto`}>
           <HtmlFormInput legend="Precio Compra" value={formData.PrecioCompra} type="number" additionalClass="fc-prod-create" onChange={handleChange} name="PrecioCompra" />
-          <HtmlFormInput legend="Precio Venta" value={formData.PrecioVenta} type="number" additionalClass="fc-prod-create" onChange={handleChange} name="PrecioVenta" />
+
         </div>
         <div className={`grid ${classResponsiveDivs} gap-4 mx-auto`}>
           <HtmlFormInput legend="Stock" value={formData.Stock} type="number" additionalClass="fc-prod-create" onChange={handleChange} name="Stock" />
