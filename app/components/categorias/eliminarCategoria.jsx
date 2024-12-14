@@ -69,6 +69,22 @@ export default function EliminarCategoria({ open, onClose, onReload, item }) {
     );
 
     return (
-        <ModalTemplate title={"Eliminar Categoría"} icon={Trash} open={open} onClose={onClose} children={modalChild} />
+        <ModalTemplate title={"Eliminar Categoría"} icon={Trash} open={open} onClose={onClose}> 
+            <div className="flex flex-col items-center justify-center text-center">
+                <p className="font-bold mb-5 text-lg dark:text-white">¿Desea eliminar este registro?</p>
+                {item && <p className="text-lg dark:text-white">Categoría: {item.NombreCategoria}</p>}
+            </div>
+
+            {onLoadingBtn ? (
+                <div className="flex items-center justify-center mt-20">
+                    <ClipLoader size={30} speedMultiplier={1.5} />
+                </div>
+            ) : (
+                <div className="flex justify-center items-center gap-4 mt-4">
+                    <HtmlButton onClick={eliminarCategoria} color={"teal"} icon={Trash} legend="Eliminar" />
+                    <HtmlButton onClick={handleClose} color={"red"} icon={X} legend="Cancelar" />
+                </div>
+            )}
+        </ModalTemplate>
     );
 }

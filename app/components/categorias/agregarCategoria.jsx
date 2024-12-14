@@ -55,7 +55,7 @@ export default function AgregarCategoria({ open, onClose, onReload }) {
 
         let model = {
             nombre: formData.nombre,
-            descripcion:formData.descripcion,
+            descripcion: formData.descripcion,
             idUsuarioCreacion: Number(session?.user.id)
         }
 
@@ -103,19 +103,41 @@ export default function AgregarCategoria({ open, onClose, onReload }) {
                         <ClipLoader size={30} speedMultiplier={1.5} />
                     </div>
                 ) : (
+                    <div className="flex justify-center items-center gap-4 mt-4">
+                        <HtmlButton type='submit' colSize={1} color={"green"} icon={Plus} legend="Agregar" />
+                        <HtmlButton onClick={handleClose} colSize={1} color={"red"} icon={X} legend="Cancelar" />
+                    </div>
+
+
+                )
+            }
+
+        </form>
+    );
+
+    return (
+        <ModalTemplate title={"Agregar Categoría"} icon={Plus} open={open} onClose={onClose}>
+            <form onSubmit={onSaveCategoria} className="w-full">
+                <div className={`pl-4 grid ${classResponsiveDivs} gap-4 mx-auto w-full`}>
+                    <HtmlFormInput legend={"Nombre"} type={"text"} value={formData.nombre} additionalClass={"fc-cat"} onChange={handleChange} name={"nombre"} />
+                    <HtmlFormInput legend={"Descipción"} value={formData.descripcion} onChange={handleChange} name={"descripcion"} />
+                </div>
+                {
+                    onLoadingBtn ? (
+                        <div className="flex items-center justify-center mt-20">
+                            <ClipLoader size={30} speedMultiplier={1.5} />
+                        </div>
+                    ) : (
                         <div className="flex justify-center items-center gap-4 mt-4">
                             <HtmlButton type='submit' colSize={1} color={"green"} icon={Plus} legend="Agregar" />
                             <HtmlButton onClick={handleClose} colSize={1} color={"red"} icon={X} legend="Cancelar" />
                         </div>
 
 
-                )
-            }
-            
-        </form>
-    );
+                    )
+                }
 
-    return (
-        <ModalTemplate title={"Agregar Categoría"} icon={Plus} open={open} onClose={onClose} children={modalChild} />
+            </form>
+        </ModalTemplate>
     );
 }

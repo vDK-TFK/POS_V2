@@ -111,6 +111,23 @@ export default function EditarCategoria({ open, onClose, onReload, item }) {
     );
 
     return (
-        <ModalTemplate title={"Editar Categoría"} icon={Pencil} open={open} onClose={onClose} children={modalChild} />
+        <ModalTemplate title={"Editar Categoría"} icon={Pencil} open={open} onClose={onClose}>
+            <form onSubmit={onEditCategoria} className="w-full">
+                <div className={`pl-4 grid ${classResponsiveDivs} gap-4 mx-auto w-full`}>
+                    <HtmlFormInput legend={"Nombre"} type={"text"} value={formData.nombre} additionalClass={"fc-cat-edit"} onChange={handleChange} name={"nombre"} />
+                    <HtmlFormInput legend={"Descipción"} value={formData.descripcion} onChange={handleChange} name={"descripcion"} />
+                </div>
+                {onLoadingBtn ? (
+                    <div className="flex items-center justify-center mt-20">
+                        <ClipLoader size={30} speedMultiplier={1.5} />
+                    </div>
+                ) : (
+                    <div className="flex justify-center items-center gap-4 mt-4">
+                        <HtmlButton type="submit" colSize={1} color={"blue"} icon={Pencil} legend="Editar" />
+                        <HtmlButton onClick={handleClose} colSize={1} color={"red"} icon={X} legend="Cancelar" />
+                    </div>
+                )}
+            </form>
+        </ModalTemplate>
     );
 }

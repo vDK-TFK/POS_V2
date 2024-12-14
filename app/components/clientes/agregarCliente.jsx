@@ -148,6 +148,38 @@ export default function AgregarCliente({ open, onClose, onGet_ListaClientes }) {
   );
 
   return (
-    <ModalTemplate children={modalChild} onClose={onClose} icon={Plus} open={open} title={"Agregar Cliente"} />
+    <ModalTemplate onClose={onClose} icon={Plus} open={open} title={"Agregar Cliente"}>
+      <form onSubmit={onSave_Cliente} className="w-full">
+        <div className="flex-grow w-full max-h-[49vh] overflow-y-auto">
+          <div className={`pl-4 grid ${classResponsiveDivs} gap-4 mx-auto w-full`}>
+            <HtmlFormInput legend={"Nombre"} value={formData.nombre} type={"text"} colSize={1} onChange={handleChange} name={"nombre"} additionalClass={"fc-cliente"} />
+          </div>
+
+          <div className={`pl-4 grid ${classResponsiveDivs2} gap-4 mx-auto w-full`}>
+            <HtmlFormInput legend={"Teléfono"} value={formData.telefono} type={"text"} colSize={1} additionalClass={"fc-cliente"} name={"telefono"} onChange={handleChange} maxLength={15} />
+            <HtmlFormInput legend={"Celular"} value={formData.celular} type={"text"} colSize={1} name={"celular"} onChange={handleChange} maxLength={15} />
+          </div>
+
+          <div className={`pl-4 grid ${classResponsiveDivs} gap-4 mx-auto w-full`}>
+            <HtmlTextArea legend={"Dirección"} value={formData.direccion} colSize={1} name={"direccion"} onChange={handleChange} />
+          </div>
+        </div>
+        <div className="w-full p-2 border-t border-gray-300">
+          {
+            onLoading ? (
+              <div className="flex items-center justify-center mt-20">
+                <ClipLoader size={30} speedMultiplier={1.5} />
+              </div>
+            ) : (
+              <div className="flex justify-center items-center gap-4 mt-4">
+                <HtmlButton type="submit" legend={"Registrar"} color={"green"} icon={Plus} />
+                <HtmlButton type="button" legend={"Cancelar"} color={"red"} icon={X} onClick={handleClose} />
+              </div>
+            )
+          }
+        </div>
+
+      </form>
+    </ModalTemplate>
   );
 }
