@@ -14,6 +14,8 @@ import EditarUsuario from "@/app/components/usuarios/editarUsuario";
 import HtmlNewLabel from "@/app/components/HtmlHelpers/Label1";
 import ModalBloquearDesbloquear from "@/app/components/utilities/bloquear";
 import EvaluarUsuario from "@/app/components/usuarios/evaluarUsuario";
+import PageContent from "@/app/components/HtmlHelpers/PageContent";
+import TablePagination from "@/app/components/HtmlHelpers/Pagination";
 
 const itemsBreadCrumb = ["Dashboard", "Usuarios"];
 
@@ -107,159 +109,92 @@ export default function Usuarios() {
         }
     }, [onGet_ListaUsuarios, onGetListaRoles]);
     // #endregion
-    return (
+    
+    const pageContent = (
         <>
-            <div className="w-full p-4">
-                <nav className="flex" aria-label="Breadcrumb">
-                    <ol className="pl-2 inline-flex items-center space-x-1 md:space-x-2 rtl:space-x-reverse">
-                        <HtmlBreadCrumb items={itemsBreadCrumb} />
-                    </ol>
-                </nav>
-            </div>
-
-            <div className="w-full pl-4 pr-4">
-                <div className="block w-full p-6 bg-white border border-gray-200 rounded-lg shadow">
-                    <h5 className="mb-2 text-2xl font-bold tracking-tight text-gray-900 dark:text-white">
-                        Administración de Usuarios
-                    </h5>
-
-                    {onLoading
-                        ? (
-                            <ClipLoader size={30} speedMultiplier={1.5} />
-                        )
-                        :
-                        (
-                            <div className="pt-4">
-                                <HtmlButton color={"blue"} icon={UserPlus} legend="Nuevo Usuario" onClick={() => { onModal_AgregarUsuario(true) }} />
-                            </div>
-                        )
-                    }
-
-                    {onLoading ? (
-                        <div className="flex items-center justify-center mt-20">
-                            <ClipLoader size={30} speedMultiplier={1.5} />
-                        </div>
-                    ) : (
-
-                        <div className="pt-4">
-                            <div className="shadow-xl border-2 bg-white dark:bg-gray-700 px-1 py-1 rounded-xl">
-                                    <div className="relative overflow-x-auto shadow-md rounded-lg">
-                                <div className="" style={{ overflow: 'auto', maxHeight: '30rem' }}>
-                                    <table className="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
-                                                <thead className="text-xs text-white uppercase bg-gray-900 dark:bg-gray-700 dark:text-gray-400">
-                                            <tr>
-                                                <th scope="col" className="px-6 py-3 text-center" style={{ width: '5%' }}>No.</th>
-                                                <th scope="col" className="px-6 py-3" style={{ width: '17%' }}>Nombre Completo</th>
-                                                <th scope="col" className="px-6 py-3" style={{ width: '7%' }}>Usuario</th>
-                                                <th scope="col" className="px-6 py-3" style={{ width: '10%' }}>Contacto</th>
-                                                <th scope="col" className="px-6 py-3" style={{ width: '5%' }}>Rol</th>
-                                                <th scope="col" className="px-6 py-3" style={{ width: '5%' }}>Estado</th>
-                                                <th scope="col" className="px-6 py-3" style={{ width: '20%' }}>Acciones</th>
-                                            </tr>
-                                        </thead>
-
-                                        <tbody>
-                                            {currentUsuarios.map((item, index) => (
-                                                item !== null && (
-                                                    <tr key={index} className="bg-white dark:bg-gray-800">
-                                                        <td className="px-6 py-4 text-gray-900" style={{ width: '5%' }}># {item.idUsuario}</td>
-                                                        <td className="px-6 py-4 text-gray-900" style={{ width: '17%' }}> {item.nombre} {item.apellidos}</td>
-                                                        <td className="px-6 py-4 text-gray-900" style={{ width: '5%' }}><HtmlNewLabel color={"indigo"} icon={User} legend={item.usuario} /></td>
-                                                        <td className="px-6 py-4 text-gray-900" style={{ width: '10%' }}>
-                                                            <div className="mb-2">
-                                                                <HtmlNewLabel color={"blue"} icon={AtSign} legend={item.correo} />
-                                                            </div>
-                                                            <div>
-                                                                <HtmlNewLabel color={"violet"} icon={PhoneCall} legend={item.telefono} />
-                                                            </div>
-
-
-                                                        </td>
-                                                        <td className="px-6 py-4 text-gray-900" style={{ width: '5%' }}><HtmlNewLabel color={"gray"} icon={Cog} legend={item.Rol.nombre} /></td>
-                                                        <td className="px-6 py-4 text-gray-900" style={{ width: '5%' }}>{item.bloqueado ? <HtmlNewLabel color={"red"} icon={Ban} legend={"Bloqueado"} /> : <HtmlNewLabel color={"green"} icon={Check} legend={"Activo"} />}</td>
-                                                        <td className=" px-6 py-4 text-gray-900" style={{ width: '20%' }}>
-                                                            
-                                                            {(item.esEmpleado && !item.bloqueado &&
-                                                                <>
-                                                                    <HtmlTableButton color={"green"} onClick={() => { onSet_IdUsuario(item.idUsuario); (item.horarios.length === 0 ? onModal_AgregarHorario(true) : onModal_EditarHorario(true)); }} tooltip={item.horarios.length != 0 ? 'Editar Horario' : 'Asignar Horario'} hasCornerBadge={item.horarios.length == 0 ? false : true} iconCorner={Pencil} icon={AlarmClock} />
-                                                                    <HtmlTableButton color={"yellow"} tooltip={"Evaluar empleado"} icon={SmilePlus} onClick={() => { onSet_IdUsuario(item.idUsuario), onModal_Evaluar(true) }} />
-                                                                </>
-                                                            )}
-                                                            {(item.bloqueado ?
-                                                                <>
-                                                                    <HtmlTableButton color={"lime"} tooltip={"Activar / Desbloquear"} icon={UnlockKeyhole} onClick={() => { onSet_IdUsuario(item.idUsuario), onSet_EsBloquear(false), onModal_BloquearDesbloquear(true) }} />
-                                                                </>
-                                                                :
-                                                                <>
-                                                                    <HtmlTableButton color={"blue"} tooltip={"Editar Usuario"} icon={Edit3} onClick={() => { onSet_IdUsuario(item.idUsuario), onModal_EditarUsuario(true) }} />
-
-                                                                    <HtmlTableButton color={"red"} tooltip={"Inactivar / Desbloquear"} icon={BanIcon} onClick={() => { onSet_IdUsuario(item.idUsuario), onSet_EsBloquear(true), onModal_BloquearDesbloquear(true) }} />
-                                                                </>
-                                                            )}
-
-                                                            
-                                                        </td>
-                                                    </tr>
-                                                )
-                                            ))}
-                                        </tbody>
-                                    </table>
-                                </div>
-                                    </div>
-                            </div>
-
-                            {/* Paginación */}
-                            <nav className="flex items-center justify-between pt-4" aria-label="Table navigation">
-                                <ul className="inline-flex -space-x-px text-sm h-8">
-                                    {/* Botón Anterior */}
-                                    <li>
-                                        <button
-                                            onClick={() => paginate(paginaActual - 1)}
-                                            disabled={paginaActual === 1}
-                                            className={`flex items-center justify-center px-3 h-8 ${paginaActual === 1 ? "cursor-not-allowed opacity-50" : "hover:bg-gray-100 dark:hover:bg-gray-700"}`}
-                                        >
-                                            Anterior
-                                        </button>
-                                    </li>
-
-                                    {/* Números de página */}
-                                    {[...Array(Math.ceil(listaUsuarios.length / registrosPorPagina)).keys()].map(number => (
-                                        <li key={number + 1}>
-                                            <button
-                                                onClick={() => paginate(number + 1)}
-                                                className={`flex items-center justify-center px-3 h-8 ${paginaActual === number + 1 ? "bg-gray-300 dark:bg-gray-600" : "hover:bg-gray-100 dark:hover:bg-gray-700"}`}
-                                            >
-                                                {number + 1}
-                                            </button>
-                                        </li>
-                                    ))}
-
-                                    {/* Botón Siguiente */}
-                                    <li>
-                                        <button
-                                            onClick={() => paginate(paginaActual + 1)}
-                                            disabled={paginaActual === Math.ceil(listaUsuarios.length / registrosPorPagina)}
-                                            className={`flex items-center justify-center px-3 h-8 ${paginaActual === Math.ceil(listaUsuarios.length / registrosPorPagina) ? "cursor-not-allowed opacity-50" : "hover:bg-gray-100 dark:hover:bg-gray-700"}`}
-                                        >
-                                            Siguiente
-                                        </button>
-                                    </li>
-                                </ul>
-                            </nav>
-                        </div>
-                    )}
-
-
-
+        {onLoading ? (
+            <div className="flex items-center justify-center mt-20" >
+                <ClipLoader size={30} speedMultiplier={1.5} />
+            </div >
+        ) : (
+            <div className="pt-4">
+                <HtmlButton color="blue" icon={UserPlus} legend="Nuevo Usuario" onClick={() => onModal_AgregarUsuario(true)} />
+                <div className="shadow-xl border-2 bg-white dark:bg-gray-700 px-1 py-1 rounded-xl mt-4">
+                    <div className="relative overflow-x-auto shadow-md rounded-lg" style={{ overflow: 'auto', maxHeight: '30rem' }}>
+                        <table className="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
+                            <thead className="text-xs text-white uppercase bg-gray-900 dark:bg-gray-700 dark:text-gray-400">
+                                <tr>
+                                    <th className="px-6 py-3 text-center" style={{ width: '8%' }}>No.</th>
+                                    <th className="px-6 py-3" style={{ width: '17%' }}>Nombre Completo</th>
+                                    <th className="px-6 py-3" style={{ width: '7%' }}>Usuario / Rol</th>
+                                    <th className="px-6 py-3" style={{ width: '10%' }}>Contacto</th>
+                                    <th className="px-6 py-3" style={{ width: '5%' }}>Estado</th>
+                                    <th className="px-6 py-3" style={{ width: '20%' }}>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {currentUsuarios.map((item, index) =>
+                                    item && (
+                                        <tr key={index} className="bg-white dark:bg-gray-800">
+                                            <td className="px-6 py-4 text-gray-900"># {item.idUsuario}</td>
+                                            <td className="px-6 py-4 text-gray-900">{item.nombre} {item.apellidos}</td>
+                                            <td className="px-6 py-4 text-gray-900">
+                                                <HtmlNewLabel color="indigo" icon={User} legend={item.usuario} />
+                                                <HtmlNewLabel color="gray" icon={Cog} legend={item.Rol.nombre} />
+                                            </td>
+                                            <td className="px-6 py-4 text-gray-900">
+                                                <HtmlNewLabel color="blue" icon={AtSign} legend={item.correo} />
+                                                <HtmlNewLabel color="violet" icon={PhoneCall} legend={item.telefono} />
+                                            </td>
+                                            
+                                            <td className="px-6 py-4 text-gray-900">
+                                                {item.bloqueado ? (
+                                                    <HtmlNewLabel color="red" icon={Ban} legend="Bloqueado" />
+                                                ) : (
+                                                    <HtmlNewLabel color="green" icon={Check} legend="Activo" />
+                                                )}
+                                            </td>
+                                            <td className="px-6 py-4 text-gray-900 flex gap-2">
+                                                {item.esEmpleado && !item.bloqueado && (
+                                                    <>
+                                                        <HtmlTableButton color={"green"} onClick={() => { onSet_IdUsuario(item.idUsuario); (item.horarios.length === 0 ? onModal_AgregarHorario(true) : onModal_EditarHorario(true)); }} tooltip={item.horarios.length != 0 ? 'Editar Horario' : 'Asignar Horario'} hasCornerBadge={item.horarios.length == 0 ? false : true} iconCorner={Pencil} icon={AlarmClock} />
+                                                        <HtmlTableButton color="yellow" tooltip="Evaluar empleado" icon={SmilePlus} onClick={() => { onSet_IdUsuario(item.idUsuario); onModal_Evaluar(true); }} />
+                                                    </>
+                                                )}
+                                                {item.bloqueado ? (
+                                                    <HtmlTableButton color="lime" tooltip="Activar / Desbloquear" icon={UnlockKeyhole} onClick={() => { onSet_IdUsuario(item.idUsuario); onSet_EsBloquear(false); onModal_BloquearDesbloquear(true); }} />
+                                                ) : (
+                                                    <>
+                                                        <HtmlTableButton color="blue" tooltip="Editar Usuario" icon={Edit3} onClick={() => { onSet_IdUsuario(item.idUsuario); onModal_EditarUsuario(true); }} />
+                                                        <HtmlTableButton color="red" tooltip="Inactivar / Bloquear" icon={BanIcon} onClick={() => { onSet_IdUsuario(item.idUsuario); onSet_EsBloquear(true); onModal_BloquearDesbloquear(true); }} />
+                                                    </>
+                                                )}
+                                            </td>
+                                        </tr>
+                                    )
+                                )}
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
+                {/* Paginación */}
+                <TablePagination onSet_PaginaActual={onSet_PaginaActual} paginaActual={paginaActual} listado={listaUsuarios} />
             </div>
-
+            
+        )}
             <AgregarHorario open={agregarHorario} onClose={() => onModal_AgregarHorario(false)} idUsuario={idUsuario} onGet_ListaUsuarios={() => onGet_ListaUsuarios()} />
             <EditarHorario open={editarHorario} onClose={() => onModal_EditarHorario(false)} idUsuario={idUsuario} onGet_ListaUsuarios={() => onGet_ListaUsuarios()} />
             <AgregarUsuario open={agregarUsuario} onClose={() => onModal_AgregarUsuario(false)} onGet_ListaUsuarios={() => onGet_ListaUsuarios()} listaRoles={listaRoles} />
             <EditarUsuario open={editarUsuario} onClose={() => onModal_EditarUsuario(false)} onGet_ListaUsuarios={() => onGet_ListaUsuarios()} listaRoles={listaRoles} idUsuario={idUsuario} />
             <ModalBloquearDesbloquear open={bloquearDesbloquear} onClose={() => onModal_BloquearDesbloquear(false)} isBlock={esBloquear} idType={idUsuario} onReload={onGet_ListaUsuarios} entity={"usuarios"} />
-            <EvaluarUsuario open={evaluar} onClose={() => onModal_Evaluar(false)} onGet_ListaUsuarios={() => onGet_ListaUsuarios()} idUsuario={idUsuario}  />
+            <EvaluarUsuario open={evaluar} onClose={() => onModal_Evaluar(false)} onGet_ListaUsuarios={() => onGet_ListaUsuarios()} idUsuario={idUsuario} />
         </>
+
+
     );
+
+    return(
+        <PageContent content={pageContent} itemsBreadCrumb={itemsBreadCrumb} tituloCard="Administración de Usuarios" />
+    );
+
 }

@@ -106,7 +106,7 @@ const LineaProducto = ({
                         value={price}
                         onChange={(e) => onChange(e, id, 'precio')}
                         className="dark:bg-gray-900 dark:text-white border border-gray-300 text-gray-900 text-xs rounded-md focus:ring-blue-500 focus:border-blue-500 block w-16 p-1"
-                    />        </div>
+                    /></div>
                 <HtmlTableButton
                     tooltip={"Eliminar Línea"}
                     color={"red"}

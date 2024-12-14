@@ -9,6 +9,7 @@ import { RemoveClassesAndAddByName, RemoveValidationClasses, ValidateFormByClass
 import HtmlCheckButton from "../HtmlHelpers/CheckButton";
 import HtmlButton from "../HtmlHelpers/Button";
 import { ClipLoader } from "react-spinners";
+import ModalTemplate from "../HtmlHelpers/ModalTemplate";
 
 export default function EditarProductoVenta({ open, onClose, reloadProducts, productoVenta,categorias }) {
   const [imagePreviewEdit, setImagePreviewEdit] = useState(null);
@@ -200,69 +201,58 @@ export default function EditarProductoVenta({ open, onClose, reloadProducts, pro
     }
   }
 
+  const modalChild = (
+    <form method="PUT" onSubmit={handleSubmit} className="my-2 w-full">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mx-auto">
+        <HtmlFormInput legend={"Nombre"} type={"text"} colSize={1} value={formData.nombre_e} name={"nombre_e"} additionalClass={"fc-product-e"} onChange={handleChange} />
+        <HtmlFormSelect colSize={1} legend={"Categoría"} selectedValue={formData.categoria_e} name={"categoria_e"} options={categorias} additionalClass={"fc-product-e"} onChange={handleChange} />
+      </div>
 
-  return (
-    <div
-      className={`fixed inset-0 flex justify-center items-center transition-opacity ${open ? "visible bg-black bg-opacity-40 dark:bg-opacity-50" : "invisible"}`}
-    >
-      <div onClick={(e) => e.stopPropagation()} className={`bg-white dark:bg-gray-800 rounded-lg shadow-lg p-8 transition-all ${open ? "scale-100 opacity-100" : "scale-90 opacity-0"} m-auto max-w-3xl w-full md:w-2/3 lg:w-7/12`}>
-        <button className="absolute top-4 right-4 p-2 rounded-lg text-gray-400 hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-gray-700 dark:hover:text-gray-300">
-          <X size={20} strokeWidth={2} onClick={handleClose} />
-        </button>
-        <div className="flex flex-col items-center">
-          <h2 className="text-2xl font-bold flex items-center gap-3 text-gray-900 dark:text-gray-100">
-            <Pencil /> Editar Producto # {formData.idProductoVenta_e}
-          </h2>
-          <hr className="w-full border-t border-gray-600 dark:border-gray-500 mt-2"></hr>
-          <form method="PUT" onSubmit={handleSubmit} className="my-2 w-full">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mx-auto">
-              <HtmlFormInput legend={"Nombre"} type={"text"} colSize={1} value={formData.nombre_e} name={"nombre_e"} additionalClass={"fc-product-e"} onChange={handleChange} />
-              <HtmlFormSelect colSize={1} legend={"Categoría"} selectedValue={formData.categoria_e} name={"categoria_e"} options={categorias} additionalClass={"fc-product-e"} onChange={handleChange} />
-            </div>
-
-            <div className="mt-2 grid grid-cols-1 md:grid-cols-3 gap-4 mx-auto">
-              <HtmlFormInput legend={"Cant. Disponible"} type={"number"} colSize={1} value={formData.cantDisponible_e} name={"cantDisponible_e"} additionalClass={"fc-product-e"} onChange={handleChange} />
-              <HtmlFormInput legend={"Cant. Mínima"} type={"number"} colSize={1} value={formData.cantMinima_e} name={"cantMinima_e"} additionalClass={"fc-product-e"} onChange={handleChange} />
-              <HtmlFormInput legend={"Precio"} type={"number"} colSize={1} value={formData.precio_e} name={"precio_e"} additionalClass={"fc-product-e"} onChange={handleChange} />
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mx-auto">
-              <div className="col-span-1 m-2">
-                <HtmlCheckButton legend="No rebaja inventario" checked={formData.noRebajaInventario_e} onChange={(e) => setFormData((prev) => ({ ...prev, noRebajaInventario_e: e.target.checked }))} />
-              </div>
-              <div className="col-span-1 m-2">
-                <HtmlCheckButton legend="Actualizar Imagen" checked={formData.actualizaImagen_e} onChange={(e) => setFormData((prev) => ({ ...prev, actualizaImagen_e: e.target.checked }), updImage())} />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-1 gap-4 mx-auto">
-              {
-                formData.actualizaImagen_e && (
-                  <HtmlFormInput legend={"Imagen"} type={"file"} colSize={1} onChange={(e) => { handleImageUpload(e), handleChange(e) }} />
-                )
-              }
-              {imagePreviewEdit && (
-                <div className="flex flex-col items-center">
-                  <h3 className="text-sm font-medium text-gray-900 dark:text-gray-100 mb-2">Vista Previa:</h3>
-                  <Image src={imagePreviewEdit} alt="Preview" className="max-w-xs max-h-20 mx-auto" height={100} width={80} />
-                </div>
-              )}
-            </div>
-
-            <div className="flex justify-center mt-4">
-              {onLoading ? (
-                <div className="flex items-center justify-center m-1">
-                  <ClipLoader size={30} speedMultiplier={1.5} />
-                </div>
-              ) : (
-                <>
-                  <HtmlButton type="submit" legend={"Actualizar"} color={"blue"} icon={Pencil} />
-                  <HtmlButton type="button" legend={"Cancelar"} color={"gray"} icon={XCircle} onClick={handleClose} />
-                </>
-              )}
-            </div>
-          </form>
+      <div className="mt-2 grid grid-cols-1 md:grid-cols-3 gap-4 mx-auto">
+        <HtmlFormInput legend={"Cant. Disponible"} type={"number"} colSize={1} value={formData.cantDisponible_e} name={"cantDisponible_e"} additionalClass={"fc-product-e"} onChange={handleChange} />
+        <HtmlFormInput legend={"Cant. Mínima"} type={"number"} colSize={1} value={formData.cantMinima_e} name={"cantMinima_e"} additionalClass={"fc-product-e"} onChange={handleChange} />
+        <HtmlFormInput legend={"Precio"} type={"number"} colSize={1} value={formData.precio_e} name={"precio_e"} additionalClass={"fc-product-e"} onChange={handleChange} />
+      </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mx-auto">
+        <div className="col-span-1 m-2">
+          <HtmlCheckButton legend="No rebaja inventario" checked={formData.noRebajaInventario_e} onChange={(e) => setFormData((prev) => ({ ...prev, noRebajaInventario_e: e.target.checked }))} />
+        </div>
+        <div className="col-span-1 m-2">
+          <HtmlCheckButton legend="Actualizar Imagen" checked={formData.actualizaImagen_e} onChange={(e) => setFormData((prev) => ({ ...prev, actualizaImagen_e: e.target.checked }), updImage())} />
         </div>
       </div>
-    </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-1 gap-4 mx-auto">
+        {
+          formData.actualizaImagen_e && (
+            <HtmlFormInput legend={"Imagen"} type={"file"} colSize={1} onChange={(e) => { handleImageUpload(e), handleChange(e) }} />
+          )
+        }
+        {imagePreviewEdit && (
+          <div className="flex flex-col items-center">
+            <h3 className="text-sm font-medium text-gray-900 dark:text-gray-100 mb-2">Vista Previa:</h3>
+            <Image src={imagePreviewEdit} alt="Preview" className="max-w-xs max-h-20 mx-auto" height={100} width={80} />
+          </div>
+        )}
+      </div>
+
+      <div className="flex justify-center mt-4">
+        {onLoading ? (
+          <div className="flex items-center justify-center m-1">
+            <ClipLoader size={30} speedMultiplier={1.5} />
+          </div>
+        ) : (
+          <>
+            <HtmlButton type="submit" legend={"Actualizar"} color={"blue"} icon={Pencil} />
+            <HtmlButton type="button" legend={"Cancelar"} color={"red"} icon={XCircle} onClick={handleClose} />
+          </>
+        )}
+      </div>
+    </form>
+
+  );
+
+  return (
+    <ModalTemplate children={modalChild} icon={Pencil} onClose={onClose} open={open} title={"Editar Producto"} />
   );
 }

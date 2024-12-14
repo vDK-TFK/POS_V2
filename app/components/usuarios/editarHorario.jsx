@@ -1,11 +1,13 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
-import { Clock, Pencil, X, XCircle } from 'lucide-react';
+import { Clock, Pencil, Plus, X, XCircle } from 'lucide-react';
 import { Toaster, toast } from 'sonner';
 import HtmlFormInput from '../HtmlHelpers/FormInput';
 import CheckButton from '../HtmlHelpers/CheckButton';
 import { ClipLoader } from 'react-spinners';
 import HtmlButton from '../HtmlHelpers/Button';
 import { RemoveClassById } from '@/app/api/utils/js-helpers';
+import ModalTemplate from '../HtmlHelpers/ModalTemplate';
+import HtmlCheckButton from '../HtmlHelpers/CheckButton';
 
 
 export default function EditarHorario({ open, onClose, idUsuario, onGet_ListaUsuarios }) {
@@ -22,7 +24,8 @@ export default function EditarHorario({ open, onClose, idUsuario, onGet_ListaUsu
 
   const [horario, onSet_Horario] = useState(initialHorario);
   const [errors, setErrors] = useState({});
-  const [loading, onSet_Loading] = useState(false);
+  const [loadingBtn, onSet_LoadingBtn] = useState(false);
+  const [loading, onSet_Loading] = useState(true);
 
   const onGet_HorariosByUsuario = useCallback(async () => {
     onSet_Loading(true);
@@ -123,10 +126,10 @@ export default function EditarHorario({ open, onClose, idUsuario, onGet_ListaUsu
       return;
     }
 
-    onSet_Loading(true);
+    onSet_LoadingBtn(true);
 
     let model = {
-      usuarioId:idUsuario,
+      usuarioId: idUsuario,
       horarios: Object.keys(horario).map(dia => ({
         dia: dia,
         inicio: horario[dia].inicio,
@@ -146,16 +149,16 @@ export default function EditarHorario({ open, onClose, idUsuario, onGet_ListaUsu
       if (data.status == "success") {
         toast.success(data.message)
         onGet_ListaUsuarios();
-        onSet_Loading(false);
+        onSet_LoadingBtn(false);
         onClose();
       }
       else {
-        onSet_Loading(false);
+        onSet_LoadingBtn(false);
         toast.error(data.message)
       }
-    } 
+    }
     catch (error) {
-      onSet_Loading(false);
+      onSet_LoadingBtn(false);
       console.error('Error al editar el horario:', error);
       toast.error("Error al editar el horario: " + error)
     }
@@ -165,7 +168,7 @@ export default function EditarHorario({ open, onClose, idUsuario, onGet_ListaUsu
     if (!open) {
       setHorario(initialHorario);
       setErrors({});
-      onSet_Loading(false);
+      onSet_LoadingBtn(false);
     }
   };
 
@@ -185,85 +188,92 @@ export default function EditarHorario({ open, onClose, idUsuario, onGet_ListaUsu
 
   if (!open) return null;
 
+  const modalChild = (
 
-
-  return (
-    <div
-      onClick={onClose}
-      className={`fixed inset-0 flex justify-center items-center transition-opacity ${open ? "visible bg-black bg-opacity-20 dark:bg-opacity-30" : "invisible"}`}
-    >
-      <div
-        onClick={(e) => e.stopPropagation()}
-        className={`bg-white dark:bg-gray-800 rounded-xl shadow p-6 transition-all ${open ? "scale-100 opacity-100" : "scale-125 opacity-0"} m-auto max-w-4xl`}
-      >
-        <button
-          onClick={handleCancel}
-          className="absolute top-2 right-2 p-1 rounded-lg text-gray-400 hover:bg-gray-50 hover:text-gray-600 dark:hover:bg-gray-700 dark:hover:text-gray-300"
-        >
-          <X size={18} strokeWidth={2} />
-        </button>
-
-        <div className="flex flex-col items-center">
-          <h2 className="text-xl font-bold flex items-center gap-3 text-gray-900 dark:text-gray-100 my-4">
-            <Pencil /> Editar Horario
-          </h2>
-
-          <form onSubmit={handleSubmit}>
-            {/* Contenedor con scroll solo para la tabla */}
-            {loading ? (
-              null
-            ) : (
-
-              <div className="relative overflow-x-auto shadow-md sm:rounded-lg">
-                <div className="" style={{ overflow: 'auto', maxHeight: '20rem' }}>
-                  <table className="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
-                    <thead className="text-xs text-gray-700 uppercase bg-gray-200 dark:bg-gray-700 dark:text-gray-400">
-                      <tr>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Día</th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Hora Inicio</th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Hora Fin</th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Día Libre</th>
+    <>
+      {
+        loading ? (
+          <div className="flex items-center justify-center mt-20">
+            <ClipLoader size={30} speedMultiplier={1.5} />
+          </div>
+        ) : (
+          <form onSubmit={handleSubmit} className="space-y-4 w-full">
+            <div className="shadow-xl border-2 bg-white dark:bg-gray-700 px-1 py-1 rounded-xl mt-4">
+              <div className="relative overflow-x-auto shadow-md rounded-lg" style={{ overflow: 'auto', maxHeight: '18rem' }}>
+                <table className="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
+                  <thead className="text-xs text-white uppercase bg-gray-900 dark:bg-gray-700 dark:text-gray-400">
+                    <tr>
+                      <th className="px-6 py-3" style={{ width: '10%' }}>Día</th>
+                      <th className="px-6 py-3" style={{ width: '10%' }}>Hora Inicio</th>
+                      <th className="px-6 py-3" style={{ width: '10%' }}>Hora Fin</th>
+                      <th className="px-6 py-3" style={{ width: '10%' }}>Es Día Libre</th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    {Object.keys(horario).map((dia) => (
+                      <tr key={dia} className="text-center">
+                        <td className="px-4 py-2 capitalize">{dia}</td>
+                        <td className="px-4 py-2">
+                          <HtmlFormInput
+                            type={"time"}
+                            id={"iptDiaInicio_" + dia}
+                            value={horario[dia].inicio}
+                            disabled={horario[dia].es_dia_libre}
+                            onChange={(e) => handleChange(dia, "inicio", e.target.value)}
+                            additionalClass={errors[`${dia}_inicio`] || errors[`${dia}_horario`] ? 'is-invalid' : ''}
+                          />
+                          {errors[`${dia}_inicio`] && <span className="text-red-500 text-sm">{errors[`${dia}_inicio`]}</span>}
+                          {errors[`${dia}_horario`] && <span className="text-red-500 text-sm">{errors[`${dia}_horario`]}</span>}
+                        </td>
+                        <td className="px-4 py-2">
+                          <HtmlFormInput
+                            type={"time"}
+                            id={"iptDiaFin_" + dia}
+                            value={horario[dia].fin}
+                            disabled={horario[dia].es_dia_libre}
+                            onChange={(e) => handleChange(dia, "fin", e.target.value)}
+                            additionalClass={errors[`${dia}_fin`] || errors[`${dia}_horario`] ? 'is-invalid' : ''}
+                          />
+                          {errors[`${dia}_fin`] && <span className="text-red-500 text-sm">{errors[`${dia}_fin`]}</span>}
+                        </td>
+                        <td className="px-4 py-2">
+                          <HtmlCheckButton
+                            checked={horario[dia].es_dia_libre}
+                            onChange={() => handleDiaLibreChange(dia)}
+                          />
+                        </td>
                       </tr>
-                    </thead>
-                    <tbody className="bg-white divide-y divide-gray-200">
-                      {Object.keys(horario).map((dia) => (
-                        <tr key={dia}>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 capitalize">{dia}</td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                            <HtmlFormInput type={"time"} id={"iptDiaInicio_" + dia} value={horario[dia].inicio} disabled={horario[dia].es_dia_libre} onChange={(e) => handleChange(dia, "inicio", e.target.value)} additionalClass={errors[`${dia}_inicio`] || errors[`${dia}_horario`] ? 'is-invalid' : ''} />
-                            {errors[`${dia}_inicio`] && <span className="text-red-500 text-sm">{errors[`${dia}_inicio`]}</span>}
-                            {errors[`${dia}_horario`] && <span className="text-red-500 text-sm">{errors[`${dia}_horario`]}</span>}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                            <HtmlFormInput type={"time"} id={"iptDiaFin_" + dia} value={horario[dia].fin} disabled={horario[dia].es_dia_libre} onChange={(e) => handleChange(dia, "fin", e.target.value)} additionalClass={errors[`${dia}_fin`] || errors[`${dia}_horario`] ? 'is-invalid' : ''} />
-                            {errors[`${dia}_fin`] && <span className="text-red-500 text-sm">{errors[`${dia}_fin`]}</span>}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-
-                            <CheckButton checked={horario[dia].es_dia_libre} onChange={() => handleDiaLibreChange(dia)} />
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
+                    ))}
+                  </tbody>
+                </table>
               </div>
-            )}
+            </div>
 
-            <div className="flex justify-end gap-4 mt-5">
-              {loading ? (
-                <ClipLoader size={30} speedMultiplier={1.5} />
-              ) : (
-                <>
-                  <HtmlButton type='submit' color={"blue"} legend={"Editar"} icon={Pencil} />
-                  <HtmlButton type='button' color={"gray"} legend={"Cancelar"} icon={XCircle} onClick={handleCancel} />
-                </>
-              )}
-
+            <div className="w-full p-2 border-t border-gray-300">
+              {
+                loadingBtn ? (
+                  <div className="flex items-center justify-center mt-20">
+                    <ClipLoader size={30} speedMultiplier={1.5} />
+                  </div>
+                ) : (
+                  <div className="flex justify-center items-center gap-4 mt-4">
+                    <HtmlButton type="submit" legend={"Editar"} color={"green"} icon={Pencil} />
+                    <HtmlButton type="button" legend={"Cancelar"} color={"red"} icon={X} onClick={handleCancel} />
+                  </div>
+                )
+              }
             </div>
           </form>
-        </div>
-      </div>
-    </div>
+
+        )
+      }
+
+
+    </>
   );
+
+  return (
+    <ModalTemplate open={open} onClose={onClose} children={modalChild} icon={Pencil} title={"Editar Horario"} />
+  )
+
 }

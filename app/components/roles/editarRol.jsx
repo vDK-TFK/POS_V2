@@ -7,16 +7,19 @@ import { RemoveClassById, SetClassById, SetRemoveClassById } from "@/app/api/uti
 import HtmlCheckButton from "../HtmlHelpers/CheckButton";
 import { ClipLoader } from "react-spinners";
 import { useSession } from "next-auth/react";
+import ModalTemplate from "../HtmlHelpers/ModalTemplate";
 
 export default function EditarRol({ open, onClose, listaPermisos, onGet_ListaRoles, idRol }) {
    const [permisosSeleccionados, setPermisosSeleccionados] = useState([]);
    const [nombreRol, setNombreRol] = useState("");
    const [descripcionRol, setDescripcionRol] = useState("");
-   const [onLoading, onSet_onLoading] = useState(false);
+   const [onLoading, onSet_onLoading] = useState(true);
+   const [onLoadingBtn, onSet_onLoadingBtn] = useState(false);
+
    const fetchCalled = useRef(false);
 
    //Sesion
-  const { data: session } = useSession();
+   const { data: session } = useSession();
 
    const limpiarForm = () => {
       setNombreRol("");
@@ -37,7 +40,7 @@ export default function EditarRol({ open, onClose, listaPermisos, onGet_ListaRol
          if (prev.includes(idPermiso)) {
             // Si el permiso está seleccionado, lo desmarcamos
             const nuevoSeleccionados = prev.filter(id => id !== idPermiso);
-   
+
             // Función para desmarcar recursivamente los hijos de un permiso
             const desmarcarHijos = (id) => {
                const hijos = listaPermisos.filter(p => p.idPermisoPadre === id);
@@ -48,15 +51,15 @@ export default function EditarRol({ open, onClose, listaPermisos, onGet_ListaRol
                   }
                });
             };
-   
+
             desmarcarHijos(idPermiso);
-   
+
             return nuevoSeleccionados;
          } else {
             // Si el permiso no está seleccionado, lo marcamos
             const nuevoSeleccionados = [...prev, idPermiso];
             const permisoSeleccionado = listaPermisos.find(p => p.idPermiso === idPermiso);
-   
+
             const agregarPadres = (id) => {
                const permiso = listaPermisos.find(p => p.idPermiso === id);
                if (permiso && permiso.idPermisoPadre) {
@@ -67,9 +70,9 @@ export default function EditarRol({ open, onClose, listaPermisos, onGet_ListaRol
                   }
                }
             };
-   
+
             agregarPadres(idPermiso);
-   
+
             return nuevoSeleccionados;
          }
       });
@@ -78,12 +81,14 @@ export default function EditarRol({ open, onClose, listaPermisos, onGet_ListaRol
    const handleEditar = async () => {
       if (onValidate()) {
          let model = {
-            idRol:idRol,
+            idRol: idRol,
             nombre: nombreRol,
             descripcion: descripcionRol == "" ? '--Sin descripción--' : descripcionRol,
             permisos: permisosSeleccionados,
             idUsuarioModificacion: Number(session?.user.id)
          };
+
+         onSet_onLoadingBtn(true);
 
          try {
             const response = await fetch('/api/roles', {
@@ -98,6 +103,7 @@ export default function EditarRol({ open, onClose, listaPermisos, onGet_ListaRol
                toast.success(data.message)
                onGet_ListaRoles();
                handleClose();
+               onSet_onLoadingBtn(false);
             }
             else {
                toast.error("Error al actualizar el rol: " + data.message)
@@ -207,80 +213,59 @@ export default function EditarRol({ open, onClose, listaPermisos, onGet_ListaRol
       );
    };
 
-   return (
-      <div
-         onClick={handleClose}
-         className={`fixed inset-0 flex justify-center items-center transition-opacity ${open ? "visible bg-black bg-opacity-40 dark:bg-opacity-50" : "invisible"}`}
-      >
-         <div
-            onClick={(e) => e.stopPropagation()}
-            className={`bg-white dark:bg-gray-800 rounded-lg shadow-lg p-8 transition-all ${open ? "scale-100 opacity-100" : "scale-90 opacity-0"} max-w-3xl w-full md:w-4/5 lg:w-10/12`}
-         >
-            <button
-               onClick={handleClose}
-               className="absolute top-4 right-4 p-2 rounded-lg text-gray-400 hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-gray-700 dark:hover:text-gray-300"
-            >
-               <X size={20} strokeWidth={2} />
-            </button>
-            <div className="text-center w-full mb-4">
-               <h2 className="text-xl font-bold flex gap-3 justify-center items-center text-gray-900 dark:text-gray-100">
-                  <Pencil /> Editar Rol: #{idRol}
-               </h2>
-               <hr className="my-3 py-0.5 border-black dark:border-white" />
+   const modalChild = (
+      <div className="grid grid-cols-2 gap-4 w-full">
+         {onLoading ? (
+            <div className="flex items-center justify-center mt-20">
+               <ClipLoader size={30} speedMultiplier={1.5} />
             </div>
-
-            <div className="grid grid-cols-2 gap-4">
-               {onLoading ? (
-                  <div className="flex items-center justify-center mt-20">
-                     <ClipLoader size={30} speedMultiplier={1.5}/>
-                  </div>
-               ) : (
-                  <>
-                     <div className="p-4 border rounded-lg h-96 overflow-y-auto">
-                        {listaPermisos.filter(p => !p.idPermisoPadre).map((permisoPadre) => (
-                           renderPermisos(permisoPadre, 0)
-                        ))}
-                     </div>
-                  </>
-               )}
+         ) : (
+            <>
+               <div className="p-4 border rounded-lg h-96 overflow-y-auto">
+                  {listaPermisos.filter(p => !p.idPermisoPadre).map((permisoPadre) => (
+                     renderPermisos(permisoPadre, 0)
+                  ))}
+               </div>
 
                <div className="p-4 flex flex-col space-y-4">
-                  {onLoading ? (
+                  <HtmlFormInput
+                     legend={"Nombre del Rol"}
+                     type={"text"}
+                     id={"txtNombreRol"}
+                     className="w-full"
+                     value={nombreRol}
+                     onChange={(e) => setNombreRol(e.target.value)}
+                  />
+                  <HtmlFormInput
+                     legend={"Descripción (Opcional)"}
+                     id={"txtDescripcion"}
+                     className="w-full"
+                     value={descripcionRol}
+                     onChange={(e) => setDescripcionRol(e.target.value)}
+                  />
+
+                  {onLoadingBtn ? (
                      <div className="flex items-center justify-center mt-20">
-                        <ClipLoader size={30} speedMultiplier={1.5}/>
+                        <ClipLoader size={30} speedMultiplier={1.5} />
                      </div>
                   ) : (
-                     <>
-                        <HtmlFormInput
-                           legend={"Nombre del Rol"}
-                           type={"text"}
-                           id={"txtNombreRol"}
-                           className="w-full"
-                           value={nombreRol}
-                           onChange={(e) => setNombreRol(e.target.value)}
+                     <div className="flex justify-end">
+                        <HtmlButton
+                           legend="Editar"
+                           color={"blue"}
+                           icon={Pencil}
+                           onClick={handleEditar}
                         />
-                        <HtmlFormInput
-                           legend={"Descripción (Opcional)"}
-                           id={"txtDescripcion"}
-                           className="w-full"
-                           value={descripcionRol}
-                           onChange={(e) => setDescripcionRol(e.target.value)}
-                        />
-
-                        <div className="flex justify-end">
-                           <HtmlButton
-                              legend="Editar"
-                              color={"blue"}
-                              icon={Pencil}
-                              onClick={handleEditar}
-                           />
-                        </div>
-                     </>
+                     </div>
                   )}
-
                </div>
-            </div>
-         </div>
+            </>
+         )}
       </div>
+   );
+
+
+   return (
+      <ModalTemplate open={open} onClose={onClose} children={modalChild} icon={Pencil} title={"Editar Rol"}  />
    );
 }
