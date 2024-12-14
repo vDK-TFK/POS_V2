@@ -69,7 +69,37 @@ export default function VerCaja({ open, onClose, idInfoCaja }) {
     )
     return (
         <>
-            <ModalTemplate open={open} onClose={onClose} loading={loading} title={"Info. Caja # " + idInfoCaja} icon={InfoCircledIcon} children={children} />
+            <ModalTemplate
+                open={open}
+                onClose={onClose}
+                loading={loading}
+                title={`Info. Caja # ${idInfoCaja}`}
+                icon={InfoCircledIcon}
+            >
+                {loading ? (
+                    <div className="flex items-center justify-center mt-20">
+                        <ClipLoader size={30} speedMultiplier={1.5} />
+                    </div>
+                ) : (
+                    datosCaja && (
+                        <div style={{ maxHeight: "50vh", overflowY: "auto", overflowX: "hidden" }}>
+                            <div>
+                                <div className={`grid ${classResponsiveDivs} gap-3 m-2`}>
+                                    <HtmlNewLabel color="blue" legend={`Inicio de Caja: ₡${datosCaja.montoInicioCaja}`} />
+                                    <HtmlNewLabel color="lime" legend={`Total Entradas: ₡${datosCaja.totalEntradas}`} />
+                                    <HtmlNewLabel color="green" legend={`Total Facturado: ₡${datosCaja.totalFacturado}`} />
+                                </div>
+                                <div className={`grid ${classResponsiveDivs} gap-3 m-2`}>
+                                    <HtmlNewLabel color="red" legend={`Cierre de Caja: ₡${datosCaja.montoCierreCaja}`} />
+                                    <HtmlNewLabel color="orange" legend={`Total Salidas: ₡${datosCaja.totalSalidas}`} />
+                                    <HtmlNewLabel color="slate" legend={`Total Diferencia: ₡${datosCaja.diferencia}`} />
+                                </div>
+                            </div>
+                        </div>
+                    )
+                )}
+            </ModalTemplate>
+
         </>
     );
 }
