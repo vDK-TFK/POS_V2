@@ -154,7 +154,7 @@ export default function Usuarios() {
                                                 <th scope="col" className="px-6 py-3" style={{ width: '10%' }}>Contacto</th>
                                                 <th scope="col" className="px-6 py-3" style={{ width: '5%' }}>Rol</th>
                                                 <th scope="col" className="px-6 py-3" style={{ width: '5%' }}>Estado</th>
-                                                <th scope="col" className="px-6 py-3" style={{ width: '16%' }}>Acciones</th>
+                                                <th scope="col" className="px-6 py-3" style={{ width: '20%' }}>Acciones</th>
                                             </tr>
                                         </thead>
 
@@ -177,28 +177,26 @@ export default function Usuarios() {
                                                         </td>
                                                         <td className="px-6 py-4 text-gray-900" style={{ width: '5%' }}><HtmlNewLabel color={"gray"} icon={Cog} legend={item.Rol.nombre} /></td>
                                                         <td className="px-6 py-4 text-gray-900" style={{ width: '5%' }}>{item.bloqueado ? <HtmlNewLabel color={"red"} icon={Ban} legend={"Bloqueado"} /> : <HtmlNewLabel color={"green"} icon={Check} legend={"Activo"} />}</td>
-                                                        <td className=" px-6 py-4 text-gray-900" style={{ width: '16%' }}>
+                                                        <td className=" px-6 py-4 text-gray-900" style={{ width: '20%' }}>
                                                             
                                                             {(item.esEmpleado && !item.bloqueado &&
                                                                 <>
-                                                                <div className="flex grid-cols-2 justify-center items-center">
                                                                     <HtmlTableButton color={"green"} onClick={() => { onSet_IdUsuario(item.idUsuario); (item.horarios.length === 0 ? onModal_AgregarHorario(true) : onModal_EditarHorario(true)); }} tooltip={item.horarios.length != 0 ? 'Editar Horario' : 'Asignar Horario'} hasCornerBadge={item.horarios.length == 0 ? false : true} iconCorner={Pencil} icon={AlarmClock} />
                                                                     <HtmlTableButton color={"yellow"} tooltip={"Evaluar empleado"} icon={SmilePlus} onClick={() => { onSet_IdUsuario(item.idUsuario), onModal_Evaluar(true) }} />
-                                                                </div>
                                                                 </>
                                                             )}
-                                                            
-                                                            
-                                                            <div className="grid grid-cols-2 justify-center items-center">
-                                                                {item.bloqueado ?
-                                                                    <HtmlTableButton color="emerald" tooltip="Activar / Desbloquear" icon={UnlockKeyhole} onClick={() => { onSet_IdUsuario(item.idUsuario); onSet_EsBloquear(false); onModal_BloquearDesbloquear(true); }} />
-                                                                    :
-                                                                    <>
-                                                                        <HtmlTableButton color="blue" tooltip="Editar Usuario" icon={Edit3} onClick={() => { onSet_IdUsuario(item.idUsuario); onModal_EditarUsuario(true); }} />
-                                                                        <HtmlTableButton color="red" tooltip="Inactivar / Desbloquear" icon={BanIcon} onClick={() => { onSet_IdUsuario(item.idUsuario); onSet_EsBloquear(true); onModal_BloquearDesbloquear(true); }} />
-                                                                    </>
-                                                                }
-                                                            </div>
+                                                            {(item.bloqueado ?
+                                                                <>
+                                                                    <HtmlTableButton color={"lime"} tooltip={"Activar / Desbloquear"} icon={UnlockKeyhole} onClick={() => { onSet_IdUsuario(item.idUsuario), onSet_EsBloquear(false), onModal_BloquearDesbloquear(true) }} />
+                                                                </>
+                                                                :
+                                                                <>
+                                                                    <HtmlTableButton color={"blue"} tooltip={"Editar Usuario"} icon={Edit3} onClick={() => { onSet_IdUsuario(item.idUsuario), onModal_EditarUsuario(true) }} />
+
+                                                                    <HtmlTableButton color={"red"} tooltip={"Inactivar / Desbloquear"} icon={BanIcon} onClick={() => { onSet_IdUsuario(item.idUsuario), onSet_EsBloquear(true), onModal_BloquearDesbloquear(true) }} />
+                                                                </>
+                                                            )}
+
                                                             
                                                         </td>
                                                     </tr>

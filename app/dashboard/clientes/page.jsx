@@ -20,12 +20,13 @@ import { FormatDate } from "@/app/api/utils/js-helpers";
 import ModalBloquearDesbloquear from "@/app/components/utilities/bloquear";
 import { Pagination } from "@mui/material";
 import TablePagination from "@/app/components/HtmlHelpers/Pagination";
+import PageContent from "@/app/components/HtmlHelpers/PageContent";
 
 const itemsBreadCrumb = ["Dashboard", "Clientes"];
 
 export default function Clientes() {
     //Variables
-    const [onLoading, onSet_onLoading] = useState(false);
+    const [onLoading, onSet_onLoading] = useState(true);
     const [paginaActual, onSet_PaginaActual] = useState(1);
     const [registrosPorPagina] = useState(5);
     const fetchCalled = useRef(false);
@@ -36,6 +37,8 @@ export default function Clientes() {
     const [editarCliente, onModal_EditarCliente] = useState(false);
     const [bloquearDesbloquear, onModal_BloquearDesbloquear] = useState(false);
     const [esBloquear, onSet_EsBloquear] = useState(false);
+    const classDivsButtons = "sm:grid-cols-1 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4";
+
 
     //Paginación
     const indexOfLastClient = paginaActual * registrosPorPagina;
@@ -167,51 +170,26 @@ export default function Clientes() {
         downloadLink.click();
     };
 
+    const pageContent = (
 
+        onLoading
+            ? (
+                <div className="flex items-center justify-center mt-20">
+                    <ClipLoader size={30} speedMultiplier={1.5} />
+                </div>
+            )
+            :
+            (
+                <>
+                    <div className={`grid ${classDivsButtons} gap-4 mx-auto`}>
+                        <HtmlButton colSize={1} color={"blue"} icon={UserPlus} legend="Nuevo Cliente" onClick={() => { onModal_AgregarCliente(true) }} />
+                        <HtmlButton colSize={1} color={"green"} legend={"Exportar Clientes"} icon={FileSpreadsheetIcon} onClick={handleExport} />
 
-    return (
-        <>
-            <div className="w-full p-4">
-                <nav className="flex" aria-label="Breadcrumb">
-                    <ol className="pl-2 inline-flex items-center space-x-1 md:space-x-2 rtl:space-x-reverse">
-                        <HtmlBreadCrumb items={itemsBreadCrumb} />
-                    </ol>
-                </nav>
-            </div>
-
-            <div className="w-full pl-4 pr-4">
-                <div className="block w-full p-6 bg-white border border-gray-200 rounded-lg shadow">
-                    <h5 className="mb-2 text-2xl font-bold tracking-tight text-gray-900 dark:text-white">
-                        Administración de Clientes
-                    </h5>
-
-                    {onLoading
-                        ? (
-                            <ClipLoader size={30} speedMultiplier={1.5} />
-                        )
-                        :
-                        (
-                            <>
-                                <div className="grid grid-cols-1 md:grid-cols-12 gap-4 mx-auto">
-                                    <HtmlButton colSize={2} color={"blue"} icon={UserPlus} legend="Nuevo Cliente" onClick={() => { onModal_AgregarCliente(true) }} />
-
-                                    {currentClientes.length > 0 &&
-                                        <HtmlButton colSize={3} color={"green"} legend={"Exportar Clientes"} icon={FileSpreadsheetIcon} onClick={handleExport} />
-                                    }
-                                </div>
-                            </>
-                        )
-                    }
-
-                    {onLoading ? (
-                        <div className="flex items-center justify-center mt-20">
-                            <ClipLoader size={30} speedMultiplier={1.5} />
-                        </div>
-                    ) : (
-
-                        <div className="pt-4">
-                            <div className="shadow-xl border-2 bg-white dark:bg-gray-700 px-1 py-1 rounded-xl">
-                                <div className="relative overflow-x-auto shadow-md rounded-lg">
+                    </div>
+                    <br />
+                    <div className="pt-4">
+                        <div className="shadow-xl border-2 bg-white dark:bg-gray-700 px-1 py-1 rounded-xl">
+                            <div className="relative overflow-x-auto shadow-md rounded-lg">
                                 <div className="" style={{ overflow: 'auto', maxHeight: '30rem' }}>
                                     <table className="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
                                         <thead className="text-xs text-white uppercase bg-gray-900 dark:bg-gray-700 dark:text-gray-400">
@@ -262,25 +240,29 @@ export default function Clientes() {
                                         </tbody>
                                     </table>
                                 </div>
-                                </div>
                             </div>
-
-                            {/* Paginación */}
-                            <TablePagination listado={listaClientes} onSet_PaginaActual={onSet_PaginaActual} paginaActual={paginaActual} />
-
                         </div>
-                    )}
+
+                        {/* Paginación */}
+                        <TablePagination listado={listaClientes} onSet_PaginaActual={onSet_PaginaActual} paginaActual={paginaActual} />
+
+                    </div>
+
+                    <AgregarCliente open={agregarCliente} onClose={() => onModal_AgregarCliente(false)} onGet_ListaClientes={onGet_ListaClientes} />
+                    <EditarCliente open={editarCliente} onClose={() => onModal_EditarCliente(false)} idCliente={idCliente} onGet_ListaClientes={onGet_ListaClientes} />
+                    <ModalBloquearDesbloquear open={bloquearDesbloquear} onClose={() => onModal_BloquearDesbloquear(false)} isBlock={esBloquear} idType={idCliente} onReload={onGet_ListaClientes} entity={"clientes"} />
+
+
+                </>
+            )
 
 
 
-                </div>
-            </div>
-            <AgregarCliente open={agregarCliente} onClose={() => onModal_AgregarCliente(false)} onGet_ListaClientes={onGet_ListaClientes} />
-            <EditarCliente open={editarCliente} onClose={() => onModal_EditarCliente(false)} idCliente={idCliente} onGet_ListaClientes={onGet_ListaClientes} />
-            <ModalBloquearDesbloquear open={bloquearDesbloquear} onClose={() => onModal_BloquearDesbloquear(false)} isBlock={esBloquear} idType={idCliente} onReload={onGet_ListaClientes} entity={"clientes"} />
 
-
-
-        </>
     );
+
+    return (
+        <PageContent content={pageContent} tituloCard="Administración de Clientes" itemsBreadCrumb={itemsBreadCrumb} />
+    )
+
 }

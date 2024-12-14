@@ -216,6 +216,13 @@ model Productos {
   FechaIngreso    DateTime
   FechaCaducidad  DateTime?
   Estado          String
+  IdUsuarioCreacion Int?
+  FechaCreacion DateTime @default(now())
+  IdUsuarioModificacion Int?
+  FechaModificacion  DateTime?
+  Eliminado Boolean @default(false)
+
+
   Categoria       CategoriasProducto @relation(fields: [CategoriaID], references: [CategoriaProductoID])
   Proveedor       Proveedores        @relation(fields: [ProveedorID], references: [ProveedorID])
   DetallesPedidos DetallesPedido[]

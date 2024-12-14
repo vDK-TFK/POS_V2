@@ -135,8 +135,9 @@ export default function Sidebar({ pageTitle = "Punto de Venta" }) {
                 />
                 <div className="flex flex-col">
                   <label className="mb-1">{session?.user?.name}</label>
-                  <label>{session?.user?.name}</label>
+                  <a href="/dashboard/perfil" className="text-sm text-blue-500 hover:underline">Mi Perfil</a>
                 </div>
+
               </div>
             </div>
             <div className="flex flex-row space-x-2">

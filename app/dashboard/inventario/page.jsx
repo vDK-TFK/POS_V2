@@ -294,10 +294,10 @@ export default function Inventario() {
 
         </div>
       </div>
-      <Eliminar open={open} onClose={() => setOpen(false)} productoId={selectedProductoId} mutate={mutate} />
+      {/* <Eliminar open={open} onClose={() => setOpen(false)} productoId={selectedProductoId} mutate={mutate} />
       <Agregar open={agregar} onClose={() => setAgregar(false)} mutate={mutate} />
       <Editar open={editar} onClose={() => setEditar(false)} productoId={selectedProductoId} mutate={mutate} />
-      <Ver open={ver} onClose={() => setVer(false)} productoId={selectedProductoId} />
+      <Ver open={ver} onClose={() => setVer(false)} productoId={selectedProductoId} /> */}
       {isMenuOpen && (
         <div
           ref={menuRef}
