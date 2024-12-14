@@ -54,7 +54,7 @@ const Realizar = ({ AccordionItem, AccordionTrigger, AccordionContent }) => {
   useEffect(() => {
     fetch(`/api/proveedor`)
       .then(response => response.json())
-      .then(data => setProveedores(data))
+      .then(data => setProveedores(data.data))
       .catch(error => console.error('Error fetching proveedores:', error));
   }, []);
 
