@@ -93,7 +93,18 @@ export default function CierreCaja({ open, onClose, idInfoCaja, onGet_ListaInfoC
 
     return (
         <ModalTemplate open={open} onClose={onClose} icon={LockKeyholeIcon} title={"Cerrar Caja"}>
-            {modalChildren}
+            <div className="flex flex-col items-center">
+                <form className="my-2 flex flex-col items-center">
+                    <div className="pl-4 grid grid-cols-1 gap-4 mx-auto ">
+                        <HtmlFormInput colSize={1} additionalClass={"fc-montoCierre"} legend={"Ingresa el monto para cerrar la caja"} onChange={handleChange} type={"number"} name={"montoCierre"} value={formData.montoCierre} />
+                    </div>
+                    <div className="mt-6 pl-4 grid grid-cols-1 gap-4 mx-auto">
+                        <div className="md:col-span-1">
+                            <HtmlButton color={"green"} onClick={() => { onUpdate_Cierre() }} icon={LockIcon} legend={"Cerrar Caja"} />
+                        </div>
+                    </div>
+                </form>
+            </div>
         </ModalTemplate>
     );
 }
