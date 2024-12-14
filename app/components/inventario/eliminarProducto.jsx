@@ -62,9 +62,9 @@ export default function EliminarProducto({ open, onClose, productoId, onReload }
                 open={open}
                 onClose={onClose}
                 title="Cargando..."
-                icon={AlertCircle}
-                children={<p className="text-center text-gray-700 dark:text-gray-200">Cargando datos del producto...</p>}
-            />
+                icon={AlertCircle}>
+                <p className="text-center text-gray-700 dark:text-gray-200">Cargando datos del producto...</p>
+            </ModalTemplate>
         );
     }
 
@@ -74,53 +74,83 @@ export default function EliminarProducto({ open, onClose, productoId, onReload }
                 open={open}
                 onClose={onClose}
                 title="Error"
-                icon={AlertCircle}
-                children={<p className="text-center text-gray-700 dark:text-gray-200">Error al cargar los datos del producto.</p>}
-            />
+                icon={AlertCircle}>
+                <p className="text-center text-gray-700 dark:text-gray-200">Error al cargar los datos del producto.</p>
+            </ModalTemplate>
+
         );
     }
 
     const modalChildren = (
-      <div className="flex flex-col items-center space-y-6 p-4">
-        {/* Título del mensaje */}
-        <p className="text-center text-lg font-semibold text-gray-800 dark:text-gray-200">
-          ¿Está seguro de que desea eliminar este producto de forma lógica?
-        </p>
-    
-        {/* Información del producto */}
-        <div className="w-full bg-gray-100 dark:bg-gray-800 p-4 rounded-lg shadow-lg">
-          <InfoRow label="Nombre" value={producto?.Nombre || "N/A"} />
+        <div className="flex flex-col items-center space-y-6 p-4">
+            {/* Título del mensaje */}
+            <p className="text-center text-lg font-semibold text-gray-800 dark:text-gray-200">
+                ¿Está seguro de que desea eliminar este producto de forma lógica?
+            </p>
+
+            {/* Información del producto */}
+            <div className="w-full bg-gray-100 dark:bg-gray-800 p-4 rounded-lg shadow-lg">
+                <InfoRow label="Nombre" value={producto?.Nombre || "N/A"} />
+            </div>
+
+            {/* Botones de acción */}
+            <div className="w-full flex flex-col sm:flex-row justify-end items-center gap-4">
+                <HtmlButton
+                    onClick={handleEliminar}
+                    color="red"
+                    icon={Trash}
+                    legend="Eliminar"
+                    additionalClass="w-full sm:w-auto"
+                />
+                <HtmlButton
+                    onClick={onClose}
+                    color="gray"
+                    icon={X}
+                    legend="Cancelar"
+                    additionalClass="w-full sm:w-auto"
+                />
+            </div>
         </div>
-    
-        {/* Botones de acción */}
-        <div className="w-full flex flex-col sm:flex-row justify-end items-center gap-4">
-          <HtmlButton
-            onClick={handleEliminar}
-            color="red"
-            icon={Trash}
-            legend="Eliminar"
-            additionalClass="w-full sm:w-auto"
-          />
-          <HtmlButton
-            onClick={onClose}
-            color="gray"
-            icon={X}
-            legend="Cancelar"
-            additionalClass="w-full sm:w-auto"
-          />
-        </div>
-      </div>
     );
-    
+
 
     return (
         <ModalTemplate
             open={open}
             onClose={onClose}
             title="Eliminar Producto"
-            icon={AlertCircle}
-            children={modalChildren}
-        />
+            icon={AlertCircle}>
+            <div className="flex flex-col items-center space-y-6 p-4">
+                {/* Título del mensaje */}
+                <p className="text-center text-lg font-semibold text-gray-800 dark:text-gray-200">
+                    ¿Está seguro de que desea eliminar este producto de forma lógica?
+                </p>
+
+                {/* Información del producto */}
+                <div className="w-full bg-gray-100 dark:bg-gray-800 p-4 rounded-lg shadow-lg">
+                    <InfoRow label="Nombre" value={producto?.Nombre || "N/A"} />
+                </div>
+
+                {/* Botones de acción */}
+                <div className="w-full flex flex-col sm:flex-row justify-end items-center gap-4">
+                    <HtmlButton
+                        onClick={handleEliminar}
+                        color="red"
+                        icon={Trash}
+                        legend="Eliminar"
+                        additionalClass="w-full sm:w-auto"
+                    />
+                    <HtmlButton
+                        onClick={onClose}
+                        color="gray"
+                        icon={X}
+                        legend="Cancelar"
+                        additionalClass="w-full sm:w-auto"
+                    />
+                </div>
+            </div>
+        </ModalTemplate>
+
     );
 }
 

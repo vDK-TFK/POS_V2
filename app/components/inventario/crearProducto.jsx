@@ -182,5 +182,55 @@ export default function CrearProducto({ open, onClose, onReload, userId }) { // 
     </form>
   );
 
-  return <ModalTemplate open={open} onClose={handleClose} icon={Plus} title="Agregar Producto" children={modalChildren} />;
+  return (
+    <ModalTemplate open={open} onClose={handleClose} icon={Plus} title="Agregar Producto">
+      <form onSubmit={handleAgregar} className="w-full">
+        <div className={`grid grid-cols-1 gap-4 mx-auto`}>
+          <HtmlFormInput legend="Nombre" value={formData.Nombre} type="text" additionalClass="fc-prod-create" onChange={handleChange} name="Nombre" />
+        </div>
+        <div className={`grid grid-cols-1 gap-4 mx-auto`}>
+          <HtmlFormInput legend="Descripción" value={formData.Descripcion} type="text" additionalClass="fc-prod-create" onChange={handleChange} name="Descripcion" />
+        </div>
+        <div className={`grid grid-cols-1 gap-4 mx-auto`}>
+          <HtmlFormSelect
+            options={arrayProveedores}
+            legend="Proveedor"
+            value={formData.ProveedorID}
+            additionalClass="fc-prod-create"
+            onChange={handleChange}
+            name="ProveedorID"
+          />
+        </div>
+        <div className={`grid ${classResponsiveDivs} gap-4 mx-auto`}>
+          <HtmlFormInput legend="Precio Compra" value={formData.PrecioCompra} type="number" additionalClass="fc-prod-create" onChange={handleChange} name="PrecioCompra" />
+          <HtmlFormInput legend="Precio Venta" value={formData.PrecioVenta} type="number" additionalClass="fc-prod-create" onChange={handleChange} name="PrecioVenta" />
+        </div>
+        <div className={`grid ${classResponsiveDivs} gap-4 mx-auto`}>
+          <HtmlFormInput legend="Stock" value={formData.Stock} type="number" additionalClass="fc-prod-create" onChange={handleChange} name="Stock" />
+          <HtmlFormSelect
+            legend="Categoría"
+            options={arrayCategorias}
+            value={formData.CategoriaID}
+            additionalClass="fc-inv-create"
+            onChange={handleChange}
+            name="CategoriaID"
+          />
+        </div>
+        <div className={`grid ${classResponsiveDivs} gap-4 mx-auto`}>
+          <HtmlFormInput legend="Fecha Ingreso" value={formData.FechaIngreso} type="date" additionalClass="fc-prod-create" onChange={handleChange} name="FechaIngreso" />
+          <HtmlFormInput legend="Fecha Caducidad" value={formData.FechaCaducidad} type="date" additionalClass="fc-prod-create" onChange={handleChange} name="FechaCaducidad" />
+        </div>
+        {onLoadingBtn ? (
+          <div className="flex items-center justify-center mt-20">
+            <ClipLoader size={30} speedMultiplier={1.5} />
+          </div>
+        ) : (
+          <div className="flex justify-center items-center gap-4 mt-4">
+            <HtmlButton type="submit" colSize={1} color="green" icon={Plus} legend="Agregar" />
+            <HtmlButton onClick={handleClose} colSize={1} color="red" icon={X} legend="Cancelar" />
+          </div>
+        )}
+      </form>
+    </ModalTemplate>
+  );
 }

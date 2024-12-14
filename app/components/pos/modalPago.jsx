@@ -245,7 +245,59 @@ export default function ModalRegistrarPago({ open, onClose, objFactura, onReload
   );
 
   return (
-    <ModalTemplate open={open} onClose={onClose} icon={Coins} children={modalChild} title={"Registrar Pago"} />
+    <ModalTemplate open={open} onClose={onClose} icon={Coins} title={"Registrar Pago"}>
+      <form method="POST" action={onValidate_GuardarFact} className="my-6 w-full">
+        <div className="flex-grow w-full max-h-[49vh] overflow-y-auto">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mx-auto">
+            <HtmlFormInput value={formData.montoTotal} name={"montoTotal"} onChange={handleChange} disabled={true} colSize={1} legend={"Monto Total"} />
+            <HtmlFormSelect legend={"Medio de Pago"} selectedValue={formData.medioPago} options={mediosPago} colSize={1} name={"medioPago"} onChange={(e) => { onChange_MedioPago(e), handleChange(e) }} />
+            <HtmlFormInput name={"pagaCon"} value={formData.pagaCon} type={"number"} disabled={disableFields} onChange={(e) => { onChange_PagaConInput(e), handleChange(e) }} colSize={1} legend={"Paga Con"} />
+          </div>
+          {
+            !hideFields && (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mx-auto">
+                <HtmlFormInput name={"vuelto"} disabled={true} type={"number"} onChange={handleChange} value={formData.vuelto} colSize={1} legend={"Vuelto"} />
+                <HtmlFormInput name={"faltante"} disabled={true} type={"number"} onChange={handleChange} value={formData.faltante} colSize={1} legend={"Faltante"} />
+              </div>
+            )
+          }
+
+
+          <div className="mt-4 grid grid-cols-1 md:grid-cols-1 gap-4 mx-auto">
+            <HtmlTextArea
+              onChange={handleChange}
+              name={"observaciones"}
+              value={formData.observaciones}
+              colSize={1}
+              legend={"Observaciones"}
+            />
+          </div>
+          <div className="flex justify-center gap-6 mt-5">
+            {onLoading ? (
+              <div className="flex items-center justify-center m-1">
+                <ClipLoader size={30} speedMultiplier={1.5} />
+              </div>
+            ) : (
+              <>
+
+                <div className="w-full p-2 border-t border-gray-300">
+                  <div className="flex justify-center items-center gap-4 mt-4">
+                    {
+                      showBtn && (
+                        <HtmlButton type="submit" legend={"Facturar"} color={"green"} icon={Send} />
+                      )
+                    }
+                    <HtmlButton type="button" legend={"Cancelar"} color={"red"} icon={X} onClick={onClose} />
+                  </div>
+                </div>
+
+
+              </>
+            )}
+          </div>
+        </div>
+      </form>
+    </ModalTemplate>
     
   );
 }

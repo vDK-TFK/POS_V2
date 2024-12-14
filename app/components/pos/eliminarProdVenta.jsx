@@ -88,9 +88,45 @@ export default function EliminarProdVenta({ open, onClose, productoVenta, reload
         <ModalTemplate
             open={open}
             onClose={onClose}
-            children={modalChild}
             icon={Trash}
-            title={"Eliminar Producto Venta"}
-        />
+            title={"Eliminar Producto Venta"}>
+            <>
+                {productoVenta ? (
+                    <>
+                        <p className="text-md text-gray-800 dark:text-gray-100">
+                            ¿Seguro que desea eliminar este producto?
+                        </p>
+                        <br />
+                        <p className="text-xl text-gray-800 dark:text-gray-100">
+                            <strong>{productoVenta.nombre}</strong>
+                        </p>
+
+                        <form className="my-2 w-full flex flex-col items-center">
+                            {onLoading ? (
+                                <div className="flex items-center justify-center m-1">
+                                    <ClipLoader size={30} speedMultiplier={1.5} />
+                                </div>
+                            ) : (
+                                <>
+                                    <div className="flex justify-center gap-6 mt-5">
+                                        {/* Botón de aceptar */}
+                                        <HtmlButton
+                                            color={"green"}
+                                            legend={"Aceptar"}
+                                            onClick={() => eliminarProdVenta(Number(productoVenta.productoVentaId))}
+                                            icon={Check}
+                                        />
+                                        {/* Botón de cancelar */}
+                                        <HtmlButton color={"red"} legend={"Cancelar"} icon={X} onClick={onClose} />
+                                    </div>
+                                </>
+                            )}
+                        </form>
+                    </>
+                ) : (
+                    <p className="text-red-500">No se encontró el producto.</p>
+                )}
+            </>
+        </ModalTemplate>
     );
 }

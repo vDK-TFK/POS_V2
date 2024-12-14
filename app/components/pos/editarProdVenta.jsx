@@ -253,6 +253,54 @@ export default function EditarProductoVenta({ open, onClose, reloadProducts, pro
   );
 
   return (
-    <ModalTemplate children={modalChild} icon={Pencil} onClose={onClose} open={open} title={"Editar Producto"} />
+    <ModalTemplate icon={Pencil} onClose={onClose} open={open} title={"Editar Producto"}>
+      <form method="PUT" onSubmit={handleSubmit} className="my-2 w-full">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mx-auto">
+          <HtmlFormInput legend={"Nombre"} type={"text"} colSize={1} value={formData.nombre_e} name={"nombre_e"} additionalClass={"fc-product-e"} onChange={handleChange} />
+          <HtmlFormSelect colSize={1} legend={"Categoría"} selectedValue={formData.categoria_e} name={"categoria_e"} options={categorias} additionalClass={"fc-product-e"} onChange={handleChange} />
+        </div>
+
+        <div className="mt-2 grid grid-cols-1 md:grid-cols-3 gap-4 mx-auto">
+          <HtmlFormInput legend={"Cant. Disponible"} type={"number"} colSize={1} value={formData.cantDisponible_e} name={"cantDisponible_e"} additionalClass={"fc-product-e"} onChange={handleChange} />
+          <HtmlFormInput legend={"Cant. Mínima"} type={"number"} colSize={1} value={formData.cantMinima_e} name={"cantMinima_e"} additionalClass={"fc-product-e"} onChange={handleChange} />
+          <HtmlFormInput legend={"Precio"} type={"number"} colSize={1} value={formData.precio_e} name={"precio_e"} additionalClass={"fc-product-e"} onChange={handleChange} />
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mx-auto">
+          <div className="col-span-1 m-2">
+            <HtmlCheckButton legend="No rebaja inventario" checked={formData.noRebajaInventario_e} onChange={(e) => setFormData((prev) => ({ ...prev, noRebajaInventario_e: e.target.checked }))} />
+          </div>
+          <div className="col-span-1 m-2">
+            <HtmlCheckButton legend="Actualizar Imagen" checked={formData.actualizaImagen_e} onChange={(e) => setFormData((prev) => ({ ...prev, actualizaImagen_e: e.target.checked }), updImage())} />
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-1 gap-4 mx-auto">
+          {
+            formData.actualizaImagen_e && (
+              <HtmlFormInput legend={"Imagen"} type={"file"} colSize={1} onChange={(e) => { handleImageUpload(e), handleChange(e) }} />
+            )
+          }
+          {imagePreviewEdit && (
+            <div className="flex flex-col items-center">
+              <h3 className="text-sm font-medium text-gray-900 dark:text-gray-100 mb-2">Vista Previa:</h3>
+              <Image src={imagePreviewEdit} alt="Preview" className="max-w-xs max-h-20 mx-auto" height={100} width={80} />
+            </div>
+          )}
+        </div>
+
+        <div className="flex justify-center mt-4">
+          {onLoading ? (
+            <div className="flex items-center justify-center m-1">
+              <ClipLoader size={30} speedMultiplier={1.5} />
+            </div>
+          ) : (
+            <>
+              <HtmlButton type="submit" legend={"Actualizar"} color={"blue"} icon={Pencil} />
+              <HtmlButton type="button" legend={"Cancelar"} color={"red"} icon={XCircle} onClick={handleClose} />
+            </>
+          )}
+        </div>
+      </form>
+    </ModalTemplate>
   );
 }
