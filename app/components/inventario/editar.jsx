@@ -210,7 +210,6 @@ export default function EditarInventario({ open, onClose, onReload, productoId, 
           <HtmlFormSelect legend="Categoría" options={arrayCategorias} value={formData.CategoriaID} additionalClass="fc-inv-edit" onChange={handleChange} name="CategoriaID" />
           <HtmlFormSelect legend="Proveedor" options={arrayProveedores} value={formData.ProveedorID} additionalClass="fc-inv-edit" onChange={handleChange} name="ProveedorID" />
           <HtmlFormInput legend="Precio Compra" type="number" value={formData.PrecioCompra} additionalClass="fc-inv-edit" onChange={handleChange} name="PrecioCompra" />
-          <HtmlFormInput legend="Precio Venta" type="number" value={formData.PrecioVenta} additionalClass="fc-inv-edit" onChange={handleChange} name="PrecioVenta" />
           <HtmlFormInput legend="Stock" type="number" value={formData.Stock} additionalClass="fc-inv-edit" onChange={handleChange} name="Stock" />
           <HtmlFormInput legend="Fecha Ingreso" type="date" value={formData.FechaIngreso} additionalClass="fc-inv-edit" onChange={handleChange} name="FechaIngreso" />
           <HtmlFormInput legend="Fecha Caducidad" type="date" value={formData.FechaCaducidad} additionalClass="fc-inv-edit" onChange={handleChange} name="FechaCaducidad" />
