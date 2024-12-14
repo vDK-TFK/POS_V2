@@ -168,12 +168,16 @@ enum EstadoFac {
 model Proveedores {
   ProveedorID   Int             @id @default(autoincrement())
   Nombre        String
-  Tipo          String          @default("Desconocido")
   Direccion     String?
   Telefono      String?
   Email         String          @unique
   SitioWeb      String?         @unique
   Contacto      String?
+  Eliminado     Boolean @default(false)
+  FechaCreacion     DateTime @default(now())
+  IdUsuarioCreacion Int?
+  FechaModificacion DateTime?
+  IdUsuarioModificacion Int?
   Pedido       Pedido[]
   Productos     Productos[]
 }
@@ -212,6 +216,13 @@ model Productos {
   FechaIngreso    DateTime
   FechaCaducidad  DateTime?
   Estado          String
+  IdUsuarioCreacion Int?
+  FechaCreacion DateTime @default(now())
+  IdUsuarioModificacion Int?
+  FechaModificacion  DateTime?
+  Eliminado Boolean @default(false)
+
+
   Categoria       CategoriasProducto @relation(fields: [CategoriaID], references: [CategoriaProductoID])
   Proveedor       Proveedores        @relation(fields: [ProveedorID], references: [ProveedorID])
   DetallesPedidos DetallesPedido[]
@@ -221,6 +232,11 @@ model CategoriasProducto {
   CategoriaProductoID Int             @id @default(autoincrement())
   NombreCategoria     String
   Descripcion         String?
+  Eliminado           Boolean @default(false)
+  FechaCreacion     DateTime @default(now())
+  IdUsuarioCreacion Int?
+  FechaModificacion DateTime?
+  IdUsuarioModificacion Int?
   Productos           Productos[]
 }
 
@@ -309,7 +325,6 @@ model EstadoMovimiento{
   nombre String
   estadosMovimientos Movimientos []
 }
-
 
 model Movimientos{
   idMovimiento Int @id @default(autoincrement())

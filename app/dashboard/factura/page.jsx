@@ -8,13 +8,13 @@ import Buscador from "../../components/buscador/buscar";
 const obtenerFechaEnEspanol = (fecha) => {
   const date = new Date(fecha);
   const opciones = {
-    weekday: 'short', 
-    day: '2-digit', 
-    month: 'long', 
+    weekday: 'short',
+    day: '2-digit',
+    month: 'long',
   };
 
   const fechaFormateada = new Intl.DateTimeFormat('es-ES', opciones).format(date);
-  const año = date.getFullYear(); 
+  const año = date.getFullYear();
 
   return `${fechaFormateada} del ${año}`;
 };
@@ -22,12 +22,12 @@ const obtenerFechaEnEspanol = (fecha) => {
 const agruparProductos = (detalles) => {
   const productosAgregados = detalles.reduce((acc, producto) => {
     const descripcion = producto.descripcion;
-    const cantidad = parseFloat(producto.cantidad); 
+    const cantidad = parseFloat(producto.cantidad);
 
     if (acc[descripcion]) {
       acc[descripcion].cantidad += cantidad;
     } else {
-      acc[descripcion] = { ...producto, cantidad }; 
+      acc[descripcion] = { ...producto, cantidad };
     }
     return acc;
   }, {});
@@ -50,7 +50,7 @@ export default function Inventario() {
           throw new Error('Error en la respuesta de la red');
         }
         const result = await response.json();
-        setData(result); 
+        setData(result);
       } catch (err) {
         setError(err);
       }
@@ -73,19 +73,19 @@ export default function Inventario() {
     const nombreCliente = "Cliente General"
     const facturaId = factura.idFactura.toString().padStart(6, '0');
     const searchLower = searchTerm.toLowerCase();
-  const filteredData = Array.isArray(data) ? data.filter(factura => {
-    //const nombreCliente = factura.cliente.nombre.toLowerCase() + factura.cliente.apellido.toLowerCase();
-    const facturaId = factura.idFactura.toString().padStart(6, '0');
-    const searchLower = searchTerm.toLowerCase();
+    const filteredData = Array.isArray(data) ? data.filter(factura => {
+      //const nombreCliente = factura.cliente.nombre.toLowerCase() + factura.cliente.apellido.toLowerCase();
+      const facturaId = factura.idFactura.toString().padStart(6, '0');
+      const searchLower = searchTerm.toLowerCase();
 
+      return (nombreCliente.includes(searchLower) || facturaId.includes(searchTerm)) &&
+        (filtros === '' ||
+          (filtros === 'activa' && factura.estadoFac === 'ACTIVA') ||
+          (filtros === 'pagada' && factura.estadoFac === 'PAGADA') ||
+          (filtros === 'nula' && factura.estadoFac === 'NULA'));
+    }) : [];
     return (nombreCliente.includes(searchLower) || facturaId.includes(searchTerm)) &&
-      (filtros === '' || 
-        (filtros === 'activa' && factura.estadoFac === 'ACTIVA') ||
-        (filtros === 'pagada' && factura.estadoFac === 'PAGADA') ||
-        (filtros === 'nula' && factura.estadoFac === 'NULA'));
-  }) : [];
-    return (nombreCliente.includes(searchLower) || facturaId.includes(searchTerm)) &&
-      (filtros === '' || 
+      (filtros === '' ||
         (filtros === 'activa' && factura.estadoFac === 'ACTIVA') ||
         (filtros === 'pagada' && factura.estadoFac === 'PAGADA') ||
         (filtros === 'nula' && factura.estadoFac === 'NULA'));
@@ -104,7 +104,7 @@ export default function Inventario() {
       actualizarEstadoFactura(facturaSeleccionada.idFactura, nuevoEstado);
     }
   };
-  
+
   const handleSearch = (term) => {
     setSearchTerm(term);
   };
@@ -121,7 +121,7 @@ export default function Inventario() {
         return "Desconocido";
     }
   };
-  
+
   return (
     <div className="w-full relative">
       <div className="md:grid gap-4 max-w-7xl mx-auto py-4 md:w-auto flex flex-col md:grid-cols-10 mb-3 md:mb-0 items-stretch md:items-center">
@@ -163,13 +163,13 @@ export default function Inventario() {
                     </span>
                     <span className='flex flex-col items-start'>
                       <p className="text-md font-semibold text-gray-900 dark:text-gray-400">
-                      Cliente
+                        Cliente
                       </p>
                       <p className="text-sm font-normal text-gray-900 dark:text-gray-400">
-                      {obtenerFechaEnEspanol(factura.fechaEmision)}
+                        {obtenerFechaEnEspanol(factura.fechaEmision)}
                       </p>
                       <p className="text-md font-normal text-gray-900 dark:text-gray-400">
-                      Pago con: {getMedioPagoTexto(factura.idMedioPago)}
+                        Pago con: {getMedioPagoTexto(factura.idMedioPago)}
                       </p>
                     </span>
                   </span>
@@ -205,8 +205,8 @@ export default function Inventario() {
                         ))}
                       </tbody>
                     </table>
-                    
-                   
+
+
 
                     {productosAgrupados.length > 4 && (
                       <button
@@ -216,10 +216,10 @@ export default function Inventario() {
                         Ver más...
                       </button>
                     )}
-                    
+
                   </div>
                   <p className="text-md font-bold text-end text-gray-900 dark:text-gray-400">Total: ₡ {factura.total}</p>
-                 
+
                 </div>
               );
             })}
@@ -228,10 +228,10 @@ export default function Inventario() {
       </div>
 
       {facturaSeleccionada && (
-        <Ver 
-          open={!!facturaSeleccionada} 
-          factura={facturaSeleccionada} 
-          onClose={handleCloseModal} 
+        <Ver
+          open={!!facturaSeleccionada}
+          factura={facturaSeleccionada}
+          onClose={handleCloseModal}
         />
       )}
     </div>

@@ -1,4 +1,4 @@
-import { Plus, X } from "lucide-react";
+import { Plus, Smile, X } from "lucide-react";
 import { toast } from 'sonner';
 import { useState } from 'react';
 import HtmlFormInput from "../HtmlHelpers/FormInput";
@@ -7,6 +7,7 @@ import { useSession } from "next-auth/react";
 import HtmlButton from "../HtmlHelpers/Button";
 import { ClipLoader } from "react-spinners";
 import HtmlTextArea from "../HtmlHelpers/TextArea";
+import ModalTemplate from "../HtmlHelpers/ModalTemplate";
 
 export default function EvaluarUsuario({ open, onClose, onGet_ListaUsuarios,idUsuario }) {
   const [onLoading, onSet_Loading] = useState(false);
@@ -94,53 +95,59 @@ export default function EvaluarUsuario({ open, onClose, onGet_ListaUsuarios,idUs
 
   }
 
-  return (
-    <div
-      className={`fixed inset-0 flex justify-center items-center transition-opacity ${open ? "visible bg-black bg-opacity-40 dark:bg-opacity-50" : "invisible"}`}
-    >
-      <div className={`bg-white dark:bg-gray-800 rounded-lg shadow-lg p-8 transition-all ${open ? "scale-100 opacity-100" : "scale-90 opacity-0"} m-auto max-w-3xl w-full md:w-2/3 lg:w-4/12`}>
+  const modalChild = (
+    <form method="POST" className="my-6 w-full" onSubmit={onSave_Evaluacion}>
+      <div className="grid grid-cols-1 md:grid-cols-1 gap-4 mx-auto">
+        <HtmlFormInput legend="Asunto" type="text" colSize={1} additionalClass="fc-metas" value={formData.asunto} onChange={handleChange} name="asunto" />
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-1 gap-4 mx-auto">
+        <HtmlTextArea legend="Observaciones" type="text" colSize={1} additionalClass="fc-metas" value={formData.observaciones} onChange={handleChange} name="observaciones" />
+      </div>
+
+      <div className="flex justify-center mt-2">
         {onLoading ? (
           <div className="flex items-center justify-center m-1">
-            <ClipLoader size={10} speedMultiplier={1.5} />
+            <ClipLoader size={30} speedMultiplier={1.5} />
           </div>
         ) : (
           <>
-            <button onClick={handleClose} className="absolute top-4 right-4 p-2 rounded-lg text-gray-400 hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-gray-700 dark:hover:text-gray-300">
-              <X size={20} strokeWidth={2} />
-            </button>
+            <HtmlButton type="submit" legend={"Registrar"} color={"green"} icon={Plus} />
+            <HtmlButton type="button" legend={"Cancelar"} color={"gray"} icon={X} onClick={handleClose} />
           </>
         )}
-
-        <div className="flex flex-col items-center">
-          <h2 className="text-2xl font-bold flex items-center gap-3 text-gray-900 dark:text-gray-100">
-            Agregar Nueva Evaluación
-          </h2>
-          <hr className="w-full border-t border-gray-600 dark:border-gray-500 mt-2" />
-          <form method="POST" className="my-6 w-full" onSubmit={onSave_Evaluacion}>
-            <div className="grid grid-cols-1 md:grid-cols-1 gap-4 mx-auto">
-              <HtmlFormInput legend="Asunto" type="text" colSize={1}  additionalClass="fc-metas" value={formData.asunto} onChange={handleChange} name="asunto" />
-            </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-1 gap-4 mx-auto">
-              <HtmlTextArea legend="Observaciones" type="text" colSize={1} additionalClass="fc-metas" value={formData.observaciones} onChange={handleChange} name="observaciones" />
-            </div>
-
-            <div className="flex justify-center mt-2">
-              {onLoading ? (
-                <div className="flex items-center justify-center m-1">
-                  <ClipLoader size={30} speedMultiplier={1.5} />
-                </div>
-              ) : (
-                <>
-                  <HtmlButton type="submit" legend={"Registrar"} color={"green"} icon={Plus} />
-                  <HtmlButton type="button" legend={"Cancelar"} color={"gray"} icon={X} onClick={handleClose} />
-                </>
-              )}
-            </div>
-
-          </form>
-        </div>
       </div>
-    </div>
+
+    </form>
+
+  );
+
+
+  return (
+    <ModalTemplate open={open} onClose={onClose} icon={Smile} title={"Evaluar Empleado"}>
+      <form method="POST" className="my-6 w-full" onSubmit={onSave_Evaluacion}>
+        <div className="grid grid-cols-1 md:grid-cols-1 gap-4 mx-auto">
+          <HtmlFormInput legend="Asunto" type="text" colSize={1} additionalClass="fc-metas" value={formData.asunto} onChange={handleChange} name="asunto" />
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-1 gap-4 mx-auto">
+          <HtmlTextArea legend="Observaciones" type="text" colSize={1} additionalClass="fc-metas" value={formData.observaciones} onChange={handleChange} name="observaciones" />
+        </div>
+
+        <div className="flex justify-center mt-2">
+          {onLoading ? (
+            <div className="flex items-center justify-center m-1">
+              <ClipLoader size={30} speedMultiplier={1.5} />
+            </div>
+          ) : (
+            <>
+              <HtmlButton type="submit" legend={"Registrar"} color={"green"} icon={Plus} />
+              <HtmlButton type="button" legend={"Cancelar"} color={"gray"} icon={X} onClick={handleClose} />
+            </>
+          )}
+        </div>
+
+      </form>
+    </ModalTemplate>
   );
 }

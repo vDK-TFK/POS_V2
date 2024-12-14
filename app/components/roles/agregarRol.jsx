@@ -6,11 +6,14 @@ import HtmlFormInput from "../HtmlHelpers/FormInput";
 import { RemoveClassById, SetClassById, SetRemoveClassById } from "@/app/api/utils/js-helpers";
 import HtmlCheckButton from "../HtmlHelpers/CheckButton";
 import { useSession } from "next-auth/react";
+import ModalTemplate from "../HtmlHelpers/ModalTemplate";
+import { ClipLoader } from "react-spinners";
 
 export default function AgregarRol({ open, onClose, listaPermisos,onGet_ListaRoles }) {
    const [permisosSeleccionados, setPermisosSeleccionados] = useState([]);
    const [nombreRol, setNombreRol] = useState("");
    const [descripcionRol, setDescripcionRol] = useState("");
+   const [loading,onSetLoading] = useState(false);
 
    //Sesion
   const { data: session } = useSession();
@@ -81,6 +84,7 @@ export default function AgregarRol({ open, onClose, listaPermisos,onGet_ListaRol
             permisos: permisosSeleccionados,
             idUsuarioCreacion: Number(session?.user.id)
          };
+         onSetLoading(true);
 
          try {
             const response = await fetch('/api/roles', {
@@ -95,6 +99,8 @@ export default function AgregarRol({ open, onClose, listaPermisos,onGet_ListaRol
                toast.success(data.message)
                onGet_ListaRoles();
                handleClose();
+               onSetLoading(false);
+
             }
             else {
                toast.error("Error al crear el rol: " + data.message)
@@ -149,29 +155,45 @@ export default function AgregarRol({ open, onClose, listaPermisos,onGet_ListaRol
       );
    };
 
-   return (
-      <div
-         onClick={handleClose}
-         className={`fixed inset-0 flex justify-center items-center transition-opacity ${open ? "visible bg-black bg-opacity-40 dark:bg-opacity-50" : "invisible"}`}
-      >
-         <div
-            onClick={(e) => e.stopPropagation()}
-            className={`bg-white dark:bg-gray-800 rounded-lg shadow-lg p-8 transition-all ${open ? "scale-100 opacity-100" : "scale-90 opacity-0"} max-w-3xl w-full md:w-4/5 lg:w-10/12`}
-         >
-            <button
-               onClick={handleClose}
-               className="absolute top-4 right-4 p-2 rounded-lg text-gray-400 hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-gray-700 dark:hover:text-gray-300"
-            >
-               <X size={20} strokeWidth={2} />
-            </button>
-            <div className="text-center w-full mb-4">
-               <h2 className="text-xl font-bold flex gap-3 justify-center items-center text-gray-900 dark:text-gray-100">
-                  <PlusIcon /> Nuevo Rol
-               </h2>
-               <hr className="my-3 py-0.5 border-black dark:border-white" />
+
+   const modalChild = (
+      <>
+         <div className="grid grid-cols-2 gap-4 w-full">
+            <div className="p-4 border rounded-lg h-96 overflow-y-auto">
+               {listaPermisos.filter(p => !p.idPermisoPadre).map((permisoPadre) => (
+                  renderPermisos(permisoPadre, 0)
+               ))}
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="p-4 flex flex-col space-y-4">
+               <HtmlFormInput legend={"Nombre del Rol"} type={"text"} id={"txtNombreRol"} className="w-full" value={nombreRol} onChange={(e) => setNombreRol(e.target.value)} />
+               <HtmlFormInput legend={"Descripción (Opcional)"} id={"txtDescripcion"} className="w-full" value={descripcionRol} onChange={(e) => setDescripcionRol(e.target.value)} />
+
+               {loading ? (
+                  <div className="flex items-center justify-center mt-20">
+                     <ClipLoader size={30} speedMultiplier={1.5} />
+                  </div>
+               ):(
+                     <div className="flex justify-end">
+                        <HtmlButton
+                           legend="Guardar"
+                           color={"green"}
+                           icon={Plus}
+                           onClick={handleGuardar}
+                        />
+                     </div>
+               )}
+               
+            </div>
+         </div>
+      </>
+      
+   );
+
+   return (
+      <ModalTemplate open={open} icon={Plus} onClose={onClose} title={"Agregar Rol"}>
+         <>
+            <div className="grid grid-cols-2 gap-4 w-full">
                <div className="p-4 border rounded-lg h-96 overflow-y-auto">
                   {listaPermisos.filter(p => !p.idPermisoPadre).map((permisoPadre) => (
                      renderPermisos(permisoPadre, 0)
@@ -182,17 +204,24 @@ export default function AgregarRol({ open, onClose, listaPermisos,onGet_ListaRol
                   <HtmlFormInput legend={"Nombre del Rol"} type={"text"} id={"txtNombreRol"} className="w-full" value={nombreRol} onChange={(e) => setNombreRol(e.target.value)} />
                   <HtmlFormInput legend={"Descripción (Opcional)"} id={"txtDescripcion"} className="w-full" value={descripcionRol} onChange={(e) => setDescripcionRol(e.target.value)} />
 
-                  <div className="flex justify-end">
-                     <HtmlButton
-                        legend="Guardar"
-                        color={"green"}
-                        icon={Plus}
-                        onClick={handleGuardar}
-                     />
-                  </div>
+                  {loading ? (
+                     <div className="flex items-center justify-center mt-20">
+                        <ClipLoader size={30} speedMultiplier={1.5} />
+                     </div>
+                  ) : (
+                     <div className="flex justify-end">
+                        <HtmlButton
+                           legend="Guardar"
+                           color={"green"}
+                           icon={Plus}
+                           onClick={handleGuardar}
+                        />
+                     </div>
+                  )}
+
                </div>
             </div>
-         </div>
-      </div>
+         </>
+      </ModalTemplate>
    );
 }

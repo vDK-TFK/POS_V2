@@ -4,11 +4,12 @@ import { GetValueById } from "@/app/api/utils/js-helpers";
 import HtmlBreadCrumb from "@/app/components/HtmlHelpers/BreadCrumb";
 import HtmlButton from "@/app/components/HtmlHelpers/Button";
 import HtmlFormInput from "@/app/components/HtmlHelpers/FormInput";
-import { ArrowLeftCircle, Check } from "lucide-react";
+import { ArrowLeftCircle, Check, Pencil } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { Toaster, toast } from 'sonner';
 import Image from "next/image";
 import { ClipLoader } from "react-spinners";
+import PageContent from "@/app/components/HtmlHelpers/PageContent";
 
 const itemsBreadCrumb = ["Home", "Info Empresa"];
 
@@ -19,6 +20,7 @@ export default function InfoEmpresa() {
    const [actualizaImagen, onSet_ActualizarImagen] = useState(false);
    const [esActualizar, onSet_EsActualizar] = useState(false);
    const onReady = useRef(false);
+   const [onLoadingBtn,onSetLoadingBtn] = useState(false);
 
    //#region [OBTENER INFO]
    const [empresa, onSet_Empresa] = useState({
@@ -40,7 +42,7 @@ export default function InfoEmpresa() {
             toast.success('Se ha obtenido la información');
             onSet_Empresa(result.data);
 
-            if(result.data.logo){
+            if (result.data.logo) {
                const bufferImagen = Buffer.from(result.data.logo);
                const imgBase64 = bufferImagen.toString('base64');
                const imgSrc = `data:${result.data.tipoImagen};base64,${imgBase64}`;
@@ -48,7 +50,7 @@ export default function InfoEmpresa() {
                setImagePreview(imgSrc);
             }
 
-            if(result.data){
+            if (result.data) {
                onSet_EsActualizar(true);
 
             }
@@ -105,12 +107,12 @@ export default function InfoEmpresa() {
       if (!isValid) {
          toast.warning('Aún existen campos por completar');
       }
-      //  else if(esActualizar){
-      //    onUpdate_InfoEmpresa();
-      //  }
-      //  else{
-      //    onSave_InfoEmpresa();
-      //  }
+       else if(esActualizar){
+         onUpdate_InfoEmpresa();
+       }
+       else{
+         onSave_InfoEmpresa();
+       }
 
    }
 
@@ -141,6 +143,8 @@ export default function InfoEmpresa() {
          actualizaImagen: actualizaImagen
       };
 
+      onSetLoadingBtn(true)
+
       try {
          const response = await fetch('/api/empresa', {
             method: 'PUT',
@@ -149,9 +153,12 @@ export default function InfoEmpresa() {
          });
 
          const result = await response.json();
-         
+
          if (result.status == "success") {
             toast.success('Información actualizada satisfactoriamente');
+            onSetLoadingBtn(false)
+            onGet_InfoEmpresa()
+
          }
          else {
             console.log("Error al actualizar la información: " + result.message);
@@ -162,7 +169,7 @@ export default function InfoEmpresa() {
       }
       catch (error) {
          toast.error("Sucedió un error al actualizar la información", error);
-         console.error("Sucedió un error al actualizar la información",error);
+         console.error("Sucedió un error al actualizar la información", error);
       }
 
    }
@@ -191,6 +198,7 @@ export default function InfoEmpresa() {
          logo: bytesImage,
          tipoImagen: typeImage
       };
+      onSetLoadingBtn(true)
 
       try {
          const response = await fetch('/api/empresa', {
@@ -204,6 +212,9 @@ export default function InfoEmpresa() {
 
             if (result.status == "success") {
                toast.success('Información registrada satisfactoriamente');
+               onSetLoadingBtn(false)
+               onGet_InfoEmpresa()
+
             }
             else {
                console.log("Error al registrar la información: " + result.message);
@@ -260,68 +271,88 @@ export default function InfoEmpresa() {
 
    }, []);
 
-   if (loading) {
-      return (
-         <div className="flex items-center justify-center mt-20">
-            <ClipLoader size={30} speedMultiplier={1.5} />
-         </div>
-      );
-   }
+  
+   const pageContent = (
 
-   return (
-      <>
-         <div className="w-full p-4">
-            <nav className="flex" aria-label="Breadcrumb">
-               <ol className="pl-2 inline-flex items-center space-x-1 md:space-x-2 rtl:space-x-reverse">
-                  <HtmlBreadCrumb items={itemsBreadCrumb} />
-               </ol>
-            </nav>
-            <div className="p-2">
-               <h4 className="text-2xl font-bold dark:text-white">Información de la empresa</h4>
+      loading
+         ? (
+            <div className="flex items-center justify-center mt-20">
+               <ClipLoader size={30} speedMultiplier={1.5} />
             </div>
-            <hr />
-            <form method="POST" onSubmit={onSubmit_Form}>
-               <div className="grid gap-4 mt-4 mb-4 grid-cols-12">
-                  <HtmlFormInput id={"txtNombre"} name="nombre" additionalClass={"ipt-empresa"} value={empresa.nombre} legend={"Nombre"} colSize={4} onChange={eventoForm} />
-                  <HtmlFormInput id={"txtNombreComercial"} name="nombreComercial" additionalClass={"ipt-empresa"} value={empresa.nombreComercial} legend={"Nombre Comercial"} colSize={4} onChange={eventoForm} />
-                  <HtmlFormInput id={"txtIdentificacion"} name="identificacion" additionalClass={"ipt-empresa"} value={empresa.identificacion} legend={"Identificación"} colSize={4} onChange={eventoForm} />
+         )
+         :
+         (
+            <>
+               <form method="POST" onSubmit={onSubmit_Form}>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mx-auto">
+                     <HtmlFormInput id={"txtNombre"} name="nombre" additionalClass={"ipt-empresa"} value={empresa.nombre} legend={"Nombre"} colSize={1} onChange={eventoForm} />
+                     <HtmlFormInput id={"txtNombreComercial"} name="nombreComercial" additionalClass={"ipt-empresa"} value={empresa.nombreComercial} legend={"Nombre Comercial"} colSize={1} onChange={eventoForm} />
+                     <HtmlFormInput id={"txtIdentificacion"} name="identificacion" additionalClass={"ipt-empresa"} value={empresa.identificacion} legend={"Identificación"} colSize={1} onChange={eventoForm} />
+                  </div >
+
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mx-auto">
+                     <HtmlFormInput id={"txtCorreo"} name="correo" additionalClass={"ipt-empresa"} value={empresa.correo} legend={"Correo"} colSize={1} onChange={eventoForm} />
+                     <HtmlFormInput id={"txtTelefono"} name="telefono" additionalClass={"ipt-empresa"} value={empresa.telefono} legend={"Teléfono"} colSize={1} onChange={eventoForm} />
+                     <HtmlFormInput id={"txtCelular"} name="celular" additionalClass={"ipt-empresa"} value={empresa.celular} legend={"Celular"} colSize={1} onChange={eventoForm} />
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-1 gap-4 mx-auto">
+                     <HtmlFormInput id={"txtDireccion"} name="direccion" additionalClass={"ipt-empresa"} value={empresa.direccion} legend={"Dirección"} colSize={1} onChange={eventoForm} />
+                  </div>
+               </form >
+
+               <div className="grid grid-cols-1 md:grid-cols-1 gap-4 mx-auto">
+                  <HtmlFormInput type={"file"} legend={"Logotipo"} colSize={1} onChange={onCharge_Imagen} />
+
                </div>
 
-               <div className="grid gap-4 mt-4 mb-4 grid-cols-12">
-                  <HtmlFormInput id={"txtCorreo"} name="correo" additionalClass={"ipt-empresa"} value={empresa.correo} legend={"Correo"} colSize={3} onChange={eventoForm} />
-                  <HtmlFormInput id={"txtTelefono"} name="telefono" additionalClass={"ipt-empresa"} value={empresa.telefono} legend={"Teléfono"} colSize={2} onChange={eventoForm} />
-                  <HtmlFormInput id={"txtCelular"} name="celular" additionalClass={"ipt-empresa"} value={empresa.celular} legend={"Celular"} colSize={2} onChange={eventoForm} />
-                  <HtmlFormInput id={"txtDireccion"} name="direccion" additionalClass={"ipt-empresa"} value={empresa.direccion} legend={"Dirección"} colSize={5} onChange={eventoForm} />
+
+               <div className="grid grid-cols-1 md:grid-cols-1 gap-4 mx-auto">
+               {
+                  onLoadingBtn ? (
+                     <ClipLoader size={30} speedMultiplier={1.5} />
+                  ) : (
+                     <>
+                        {!esActualizar && (
+                           <HtmlButton type="submit" color={"green"} legend={"Guardar Información"} onClick={() => { onSave_InfoEmpresa() }} icon={Check} />
+                        )}
+                        {esActualizar && (
+                           <HtmlButton type="submit" color={"blue"} legend={"Actualizar Información"} onClick={() => { onUpdate_InfoEmpresa() }} icon={Pencil} />
+                        )}
+                     </>
+                  )
+               }
+                  
                </div>
-            </form>
-            <hr />
-            <div className="grid gap-4 mt-4 mb-4 grid-cols-12">
-               <HtmlFormInput type={"file"} legend={"Logotipo"} colSize={6} onChange={onCharge_Imagen} />
-               <div className="col-span-3 mt-10">
-                  {!esActualizar && (
-                     <HtmlButton type="submit" color={"green"} legend={"Guardar Información"} onClick={() => { onSave_InfoEmpresa() }} icon={Check} />
-                  )}
-                  {esActualizar && (
-                     <HtmlButton type="submit" color={"blue"} legend={"Actualizar Información"} onClick={() => { onUpdate_InfoEmpresa() }} icon={ArrowLeftCircle} />
-                  )}
-               </div>
-            </div>
-            {imagePreview && (
-               <div className="grid gap-4 mt-2 mb-4 grid-cols-12">
-                  <div className="col-span-2">
-                     <div className="mt-2 border-2 flex flex-col">
-                        <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">Vista Previa:</h3>
-                        <div>
-                           <Image src={imagePreview} alt="Preview" className="max-w-40 max-h-40" width={200} height={200} />
+
+               {
+                  imagePreview && (
+                     <div className="grid grid-cols-1 md:grid-cols-1 gap-4 mx-auto">
+                        <div className="col-span-1">
+                           <div className="mt-2 border-2 inline-block">
+                              <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">Vista Previa:</h3>
+                              <Image
+                                 src={imagePreview}
+                                 alt="Preview"
+                                 className="block"
+                                 width={200}
+                                 height={200}
+                              />
+                           </div>
                         </div>
                      </div>
-                  </div>
-               </div>
-            )}
+                  )
+               }
 
 
-         </div>
-         <Toaster richColors />
-      </>
+            </>
+
+         )
+
+
+   );
+
+   return (
+      <PageContent content={pageContent} itemsBreadCrumb={itemsBreadCrumb} tituloCard="Información de la empresa"  />
    );
 }
