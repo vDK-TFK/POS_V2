@@ -216,6 +216,49 @@ export default function AgregarProductoVenta({ open, onClose, reloadProducts, li
 
 
   return (
-    <ModalTemplate open={open} children={modalChild} icon={Plus} onClose={onClose} title={"Agregar Nuevo Producto"} />
+    <ModalTemplate open={open} icon={Plus} onClose={onClose} title={"Agregar Nuevo Producto"}>
+      <form method="POST" className="my-2 w-full" onSubmit={onFormSubmit}>
+        <div className="max-h-[50vh] overflow-y-auto">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mx-auto">
+            <HtmlFormInput legend={"Nombre"} type={"text"} colSize={1} value={formData.nombre} name={"nombre"} additionalClass={"fc-product"} onChange={handleChange} />
+            <HtmlFormSelect colSize={1} legend={"Categoría"} value={formData.categoria} name={"categoria"} options={categorias} additionalClass={"fc-product"} onChange={handleChange} reset={onClose} />
+          </div>
+
+          <div className="mt-2 grid grid-cols-1 md:grid-cols-3 gap-4 mx-auto">
+            <HtmlFormInput legend={"Cant. Disponible"} type={"number"} colSize={1} value={formData.cantDisponible} name={"cantDisponible"} additionalClass={"fc-product"} onChange={handleChange} />
+            <HtmlFormInput legend={"Cant. Mínima"} type={"number"} colSize={1} value={formData.cantMinima} name={"cantMinima"} additionalClass={"fc-product"} onChange={handleChange} />
+            <HtmlFormInput legend={"Precio"} type={"number"} colSize={1} value={formData.precio} name={"precio"} additionalClass={"fc-product"} onChange={handleChange} />
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-1 gap-4 mx-auto">
+            <div className="col-span-1 m-2">
+              <HtmlCheckButton legend="No rebaja inventario" onChange={(e) => setFormData((prev) => ({ ...prev, noRebajaInventario: e.target.checked }))} />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-1 gap-4 mx-auto">
+            <HtmlFormInput legend={"Imagen"} type={"file"} colSize={1} onChange={(e) => { handleImageUpload(e), handleChange(e) }} />
+            {imagePreview && (
+              <div className="flex flex-col items-center">
+                <h3 className="text-sm font-medium text-gray-900 dark:text-gray-100 mb-2">Vista Previa:</h3>
+                <Image src={imagePreview} alt="Preview" className="max-w-xs max-h-20 mx-auto" height={100} width={80} />
+              </div>
+            )}
+          </div>
+
+          <div className="flex justify-center mt-4">
+            {onLoading ? (
+              <div className="flex items-center justify-center m-1">
+                <ClipLoader size={30} speedMultiplier={1.5} />
+              </div>
+            ) : (
+              <>
+                <HtmlButton type="submit" legend={"Registrar"} color={"green"} icon={Plus} />
+                <HtmlButton type="button" legend={"Cancelar"} color={"red"} icon={XCircle} onClick={handleClose} />
+              </>
+            )}
+          </div>
+        </div>
+      </form>
+    </ModalTemplate>
   );
 }

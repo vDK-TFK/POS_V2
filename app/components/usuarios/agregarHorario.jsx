@@ -193,6 +193,74 @@ export default function AgregarHorario({ open, onClose, idUsuario, onGet_ListaUs
   );
 
   return (
-    <ModalTemplate open={open} onClose={onClose} icon={Plus} children={modalChild} title={"Agregar Horario"}  />
+    <ModalTemplate open={open} onClose={onClose} icon={Plus} title={"Agregar Horario"}>
+      <form onSubmit={handleSubmit} className="space-y-4 w-full">
+        <div className="shadow-xl border-2 bg-white dark:bg-gray-700 px-1 py-1 rounded-xl mt-4">
+          <div className="relative overflow-x-auto shadow-md rounded-lg" style={{ overflow: 'auto', maxHeight: '18rem' }}>
+            <table className="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
+              <thead className="text-xs text-white uppercase bg-gray-900 dark:bg-gray-700 dark:text-gray-400">
+                <tr>
+                  <th className="px-6 py-3" style={{ width: '10%' }}>Día</th>
+                  <th className="px-6 py-3" style={{ width: '10%' }}>Hora Inicio</th>
+                  <th className="px-6 py-3" style={{ width: '10%' }}>Hora Fin</th>
+                  <th className="px-6 py-3" style={{ width: '10%' }}>Es Día Libre</th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {Object.keys(horario).map((dia) => (
+                  <tr key={dia} className="text-center">
+                    <td className="px-4 py-2 capitalize">{dia}</td>
+                    <td className="px-4 py-2">
+                      <HtmlFormInput
+                        type={"time"}
+                        id={"iptDiaInicio_" + dia}
+                        value={horario[dia].inicio}
+                        disabled={horario[dia].es_dia_libre}
+                        onChange={(e) => handleChange(dia, "inicio", e.target.value)}
+                        additionalClass={errors[`${dia}_inicio`] || errors[`${dia}_horario`] ? 'is-invalid' : ''}
+                      />
+                      {errors[`${dia}_inicio`] && <span className="text-red-500 text-sm">{errors[`${dia}_inicio`]}</span>}
+                      {errors[`${dia}_horario`] && <span className="text-red-500 text-sm">{errors[`${dia}_horario`]}</span>}
+                    </td>
+                    <td className="px-4 py-2">
+                      <HtmlFormInput
+                        type={"time"}
+                        id={"iptDiaFin_" + dia}
+                        value={horario[dia].fin}
+                        disabled={horario[dia].es_dia_libre}
+                        onChange={(e) => handleChange(dia, "fin", e.target.value)}
+                        additionalClass={errors[`${dia}_fin`] || errors[`${dia}_horario`] ? 'is-invalid' : ''}
+                      />
+                      {errors[`${dia}_fin`] && <span className="text-red-500 text-sm">{errors[`${dia}_fin`]}</span>}
+                    </td>
+                    <td className="px-4 py-2">
+                      <HtmlCheckButton
+                        checked={horario[dia].es_dia_libre}
+                        onChange={() => handleDiaLibreChange(dia)}
+                      />
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div className="w-full p-2 border-t border-gray-300">
+          {
+            loading ? (
+              <div className="flex items-center justify-center mt-20">
+                <ClipLoader size={30} speedMultiplier={1.5} />
+              </div>
+            ) : (
+              <div className="flex justify-center items-center gap-4 mt-4">
+                <HtmlButton type="submit" legend={"Registrar"} color={"green"} icon={Plus} />
+                <HtmlButton type="button" legend={"Cancelar"} color={"red"} icon={X} onClick={handleCancel} />
+              </div>
+            )
+          }
+        </div>
+      </form>
+    </ModalTemplate>
   )
 }

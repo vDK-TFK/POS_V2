@@ -191,6 +191,37 @@ export default function AgregarRol({ open, onClose, listaPermisos,onGet_ListaRol
    );
 
    return (
-      <ModalTemplate open={open} children={modalChild} icon={Plus} onClose={onClose} title={"Agregar Rol"} />
+      <ModalTemplate open={open} icon={Plus} onClose={onClose} title={"Agregar Rol"}>
+         <>
+            <div className="grid grid-cols-2 gap-4 w-full">
+               <div className="p-4 border rounded-lg h-96 overflow-y-auto">
+                  {listaPermisos.filter(p => !p.idPermisoPadre).map((permisoPadre) => (
+                     renderPermisos(permisoPadre, 0)
+                  ))}
+               </div>
+
+               <div className="p-4 flex flex-col space-y-4">
+                  <HtmlFormInput legend={"Nombre del Rol"} type={"text"} id={"txtNombreRol"} className="w-full" value={nombreRol} onChange={(e) => setNombreRol(e.target.value)} />
+                  <HtmlFormInput legend={"Descripción (Opcional)"} id={"txtDescripcion"} className="w-full" value={descripcionRol} onChange={(e) => setDescripcionRol(e.target.value)} />
+
+                  {loading ? (
+                     <div className="flex items-center justify-center mt-20">
+                        <ClipLoader size={30} speedMultiplier={1.5} />
+                     </div>
+                  ) : (
+                     <div className="flex justify-end">
+                        <HtmlButton
+                           legend="Guardar"
+                           color={"green"}
+                           icon={Plus}
+                           onClick={handleGuardar}
+                        />
+                     </div>
+                  )}
+
+               </div>
+            </div>
+         </>
+      </ModalTemplate>
    );
 }
